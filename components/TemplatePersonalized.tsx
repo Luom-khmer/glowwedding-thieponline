@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { InvitationData } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Save, Upload, Check, Music, ZoomIn, ZoomOut, RotateCw, Heart, Loader2, Link } from 'lucide-react';
+import { X, Pencil, Save, Upload, Check, Music, ZoomIn, ZoomOut, RotateCw, Heart, Loader2, Link, CloudUpload } from 'lucide-react';
 import { Button } from './Button';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
@@ -13,9 +13,10 @@ import { collection, addDoc } from 'firebase/firestore';
 interface TemplatePersonalizedProps {
   data: InvitationData;
   onSave?: (newData: InvitationData) => void;
-  readonly?: boolean; // New prop for Guest View
-  invitationId?: string; // ID của thiệp
-  guestName?: string; // Tên khách mời từ URL
+  onAutosave?: (newData: InvitationData) => void; // Autosave Prop
+  readonly?: boolean; 
+  invitationId?: string; 
+  guestName?: string; 
 }
 
 interface EditingFieldState {
@@ -25,11 +26,12 @@ interface EditingFieldState {
     fontSize?: number;
 }
 
-export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data: initialData, onSave, readonly = false, invitationId, guestName }) => {
+export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data: initialData, onSave, onAutosave, readonly = false, invitationId, guestName }) => {
   const [localData, setLocalData] = useState<InvitationData>(initialData);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [editingField, setEditingField] = useState<EditingFieldState | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
   
   // State for Animation Trigger
   const [isOpening, setIsOpening] = useState(false);
@@ -58,6 +60,23 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
   const fileInputRef = useRef<HTMLInputElement>(null);
   const musicInputRef = useRef<HTMLInputElement>(null);
   const activeImageFieldRef = useRef<string | null>(null);
+
+  // --- AUTOSAVE LOGIC ---
+  useEffect(() => {
+    // Chỉ autosave nếu đang ở chế độ chỉnh sửa và không phải readonly
+    if (!isEditMode || readonly || !onAutosave) return;
+
+    // Set status to saving immediately when data changes
+    setSaveStatus('saving');
+
+    const timer = setTimeout(() => {
+        onAutosave(localData);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+    }, 2000); // 2 seconds debounce
+
+    return () => clearTimeout(timer);
+  }, [localData, isEditMode, onAutosave, readonly]);
 
   // Auto-play and Opening Effect
   useEffect(() => {
@@ -462,7 +481,23 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
         
         {/* EDIT BUTTON - HIDDEN IN READONLY */}
         {!readonly && (
-            <button onClick={() => isEditMode ? handleSave() : setIsEditMode(true)} className="absolute top-4 right-4 z-[150] p-2 bg-white/60 hover:bg-white backdrop-blur-md rounded-full shadow-sm text-gray-700 hover:text-rose-600">{isEditMode ? <Save className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}</button>
+            <div className="absolute top-4 right-4 z-[150] flex items-center gap-2">
+                 {/* Autosave Status Badge */}
+                 {isEditMode && saveStatus !== 'idle' && (
+                     <motion.div 
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        className="bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+                     >
+                         {saveStatus === 'saving' ? (
+                             <><CloudUpload className="w-3 h-3 animate-bounce" /> Đang lưu...</>
+                         ) : (
+                             <><Check className="w-3 h-3 text-green-400" /> Đã lưu</>
+                         )}
+                     </motion.div>
+                 )}
+
+                <button onClick={() => isEditMode ? handleSave() : setIsEditMode(true)} className={`p-2 backdrop-blur-md rounded-full shadow-sm transition-all ${isEditMode ? 'bg-rose-600 text-white shadow-rose-300' : 'bg-white/60 hover:bg-white text-gray-700 hover:text-rose-600'}`}>{isEditMode ? <Check className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}</button>
+            </div>
         )}
 
         {/* --- CURTAINS (OPENING EFFECT) --- */}

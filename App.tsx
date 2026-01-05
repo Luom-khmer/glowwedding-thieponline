@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Menu, X, ArrowRight, User as UserIcon, LogOut, FolderHeart, Save, Heart, ShieldCheck, Lock, Shield, Loader2, Link as LinkIcon } from 'lucide-react';
-import { Template, ViewState, TEMPLATES, InvitationData, User, SavedInvitation } from './types';
+import { Template, ViewState, TEMPLATES, InvitationData, User, SavedInvitation, DEFAULT_INVITATION_DATA } from './types';
 import { Button } from './components/Button';
 import { Preview } from './components/Preview';
 import { Pricing } from './components/Pricing';
@@ -19,50 +19,12 @@ import { invitationService } from './services/invitationService';
 import { auth, googleProvider } from './services/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 
-const initialData: InvitationData = {
-  groomName: 'Anh Tú',
-  groomFather: 'Ông Cấn Văn An',
-  groomMother: 'Bà Nguyễn Thị Hải',
-  brideName: 'Diệu Nhi',
-  brideFather: 'Ông Trần Văn A',
-  brideMother: 'Bà Nguyễn Thị B',
-  date: '2025-02-15',
-  time: '10:00',
-  location: 'The ADORA Center',
-  address: '431 Hoàng Văn Thụ, Phường 4, Tân Bình, Hồ Chí Minh',
-  message: 'Hân hạnh được đón tiếp quý khách đến chung vui cùng gia đình chúng tôi.',
-  imageUrl: 'https://statics.pancake.vn/web-media/ab/56/c3/d2/ae46af903d624877e4e71b00dc5ab4badaa10a8956d3c389ccbc73e9-w:1080-h:1620-l:151635-t:image/jpeg.jpeg',
-  mapUrl: 'https://maps.google.com', 
-  mapImageUrl: 'https://statics.pancake.vn/web-media/f9/98/70/54/59b84c281bf331dc5baccfb671f74826f2cc248fe6459e58d0fd17bc-w:1200-h:1200-l:51245-t:image/png.png',
-  qrCodeUrl: 'https://statics.pancake.vn/web-media/e2/bc/35/38/dc2d9ddf74d997785eb0c802bd3237a50de1118e505f1e0a89ae4ec1-w:592-h:1280-l:497233-t:image/png.png',
-  bankInfo: 'MBBANK - NGUYEN TAN DAT\n8838683860',
-  musicUrl: 'https://statics.pancake.vn/web-media/5e/ee/bf/4a/afa10d3bdf98ca17ec3191ebbfd3c829d135d06939ee1f1b712d731d-w:0-h:0-l:2938934-t:audio/mpeg.mp3',
-  googleSheetUrl: '',
-  centerImage: 'https://statics.pancake.vn/web-media/e2/8c/c5/37/905dccbcd5bc1c1b602c10c95acb9986765f735e075bff1097e7f457-w:736-h:981-l:47868-t:image/jpeg.jfif',
-  footerImage: 'https://statics.pancake.vn/web-media/ad/c0/11/16/06080e040619cef49e87d7e06a574eb61310d3dc4bdc9f0fec3638c9-w:854-h:1280-l:259362-t:image/jpeg.png',
-  albumImages: [
-      'https://statics.pancake.vn/web-media/e9/80/6a/05/fcf14d0545da0e656237816d3712c50d2792afda074a96abfd9bcec5-w:878-h:1280-l:99344-t:image/jpeg.png',
-      'https://statics.pancake.vn/web-media/09/00/8a/b4/692735fdc0775ae1530963a767ce4264df77078f659771a3cde9c5ac-w:840-h:1280-l:177736-t:image/jpeg.png',
-      'https://statics.pancake.vn/web-media/84/b3/f5/cd/cc7957b9f0e497f01a17d05f9e73406b7650b249c169b424c7ee1767-w:854-h:1280-l:94691-t:image/jpeg.png',
-      'https://statics.pancake.vn/web-media/60/b1/5e/e9/89fd2d2d6cd9a62db6e70776243eb9ed8603fc1fb415bdc95da92104-w:1286-h:857-l:255701-t:image/jpeg.jpg',
-      'https://statics.pancake.vn/web-media/7a/e8/d6/f6/da197a5a3542dfe09e7faa9e118999103385582808a2e2014fc72986-w:1286-h:988-l:154700-t:image/jpeg.jpg'
-  ],
-  galleryImages: [
-      'https://statics.pancake.vn/web-media/21/54/83/cb/163b4872b6600196d0ac068b1f046c5dd5f9d20c3ddad5e7c0abea9b-w:736-h:980-l:48194-t:image/jpeg.jfif',
-      'https://statics.pancake.vn/web-media/3c/3b/ca/e1/e12ca0e6af675d653327f5a3b5d2c7c2385f71d26b8fee7604b45828-w:1706-h:2560-l:224512-t:image/jpeg.jpg',
-      'https://statics.pancake.vn/web-media/6f/2b/71/1d/03a457a718b5bf78c5639d6de0521b7a19ec698dcd5737408a50bd16-w:1707-h:2560-l:275640-t:image/jpeg.jpg'
-  ],
-  lunarDate: '(Tức Ngày 18 Tháng 01 Năm Ất Tỵ)',
-  groomAddress: 'Quận 8, TP. Hồ Chí Minh',
-  brideAddress: 'Quận 8, TP. Hồ Chí Minh',
-  elementStyles: {}
-};
-
 function App() {
   const [view, setView] = useState<ViewState>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [formData, setFormData] = useState<InvitationData>(initialData);
+  // Use DEFAULT_INVITATION_DATA for initial state
+  const [formData, setFormData] = useState<InvitationData>(DEFAULT_INVITATION_DATA);
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   
@@ -105,7 +67,22 @@ function App() {
               const inv = await invitationService.getInvitationById(invitationId);
               
               if (inv) {
-                  setViewingInvitation(inv);
+                  // --- CRITICAL FIX: MERGE WITH DEFAULT DATA ---
+                  // Nếu dữ liệu từ DB thiếu trường nào, sẽ tự động lấy từ DEFAULT_INVITATION_DATA
+                  // Deep merge cho elementStyles để đảm bảo font size không bị mất
+                  const mergedData: InvitationData = {
+                      ...DEFAULT_INVITATION_DATA,
+                      ...inv.data,
+                      elementStyles: {
+                          ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
+                          ...(inv.data.elementStyles || {})
+                      }
+                  };
+                  
+                  // Update the invitation object with merged data
+                  const safeInvitation = { ...inv, data: mergedData };
+
+                  setViewingInvitation(safeInvitation);
                   
                   // Nếu mode là 'tool' -> Chuyển sang giao diện tool cho dâu rể dùng
                   if (mode === 'tool') {
@@ -144,7 +121,7 @@ function App() {
     setSelectedTemplate(t);
     // Nếu đang không edit (tạo mới), reset form về mặc định
     if (!editingId) {
-       setFormData(initialData);
+       setFormData(DEFAULT_INVITATION_DATA);
     }
     setView('preview');
   };
@@ -187,6 +164,23 @@ function App() {
     alert(`Bạn đã chọn gói ${plan}. Hệ thống thanh toán đang được tích hợp.`);
   }
   
+  // --- AUTOSAVE HANDLER ---
+  const handleAutosave = async (newData: InvitationData) => {
+    // Chỉ autosave nếu đang EDIT một thiệp ĐÃ CÓ (có editingId) và người dùng có quyền
+    if (editingId && canEdit) {
+        const currentInv = savedInvitations.find(i => i.id === editingId);
+        if (currentInv) {
+            try {
+                // Lưu thầm lặng (không hiện loading modal)
+                await invitationService.updateInvitation(editingId, currentInv.customerName, newData);
+                console.log("Autosave success for:", editingId);
+            } catch (e) {
+                console.error("Autosave failed", e);
+            }
+        }
+    }
+  };
+
   const handleSaveRequest = (newData: InvitationData) => {
     if (!canEdit) {
         alert("Bạn không có quyền lưu thiệp này.");
@@ -256,12 +250,31 @@ function App() {
   };
   
   const handleViewAsGuest = (inv: SavedInvitation) => {
-      setViewingInvitation(inv);
+      // Cũng phải merge data khi xem từ Dashboard để đảm bảo không lỗi
+      const mergedData: InvitationData = {
+          ...DEFAULT_INVITATION_DATA,
+          ...inv.data,
+          elementStyles: {
+              ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
+              ...(inv.data.elementStyles || {})
+          }
+      };
+      setViewingInvitation({ ...inv, data: mergedData });
       setView('guest-view');
   };
 
   const handleEditInvitation = (inv: SavedInvitation) => {
-      setFormData(inv.data);
+      // Merge data khi edit để tránh mất field khi lưu lại
+      const mergedData: InvitationData = {
+          ...DEFAULT_INVITATION_DATA,
+          ...inv.data,
+          elementStyles: {
+              ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
+              ...(inv.data.elementStyles || {})
+          }
+      };
+      
+      setFormData(mergedData);
       setEditingId(inv.id);
       const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; 
       setSelectedTemplate(temp);
@@ -573,6 +586,7 @@ function App() {
                 template={selectedTemplate} 
                 onBack={() => setView('templates')}
                 onSave={handleSaveRequest} 
+                onAutosave={handleAutosave} // Truyền hàm autosave xuống
                 readonly={!canEdit} 
             />
           )}
@@ -639,19 +653,20 @@ function App() {
                 )}
 
                 <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-y-auto">
-                     {viewingInvitation.data.centerImage ? (
-                        <TemplateRedGold 
-                            data={viewingInvitation.data} 
-                            readonly={true} 
-                            invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
-                        />
-                     ) : (
+                     {/* CRITICAL FIX: Use STYLE to determine template instead of image logic */}
+                     {viewingInvitation.data.style === 'personalized' ? (
                         <TemplatePersonalized 
                             data={viewingInvitation.data} 
                             readonly={true} 
                             invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
+                            guestName={guestNameFromUrl} 
+                        />
+                     ) : (
+                        <TemplateRedGold 
+                            data={viewingInvitation.data} 
+                            readonly={true} 
+                            invitationId={viewingInvitation.id}
+                            guestName={guestNameFromUrl} 
                         />
                      )}
                 </div>

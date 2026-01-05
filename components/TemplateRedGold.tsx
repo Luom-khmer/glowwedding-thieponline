@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { InvitationData } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Save, Upload, Check, Heart, Music, ZoomIn, ZoomOut, RotateCw, Loader2, Link } from 'lucide-react';
+import { X, Pencil, Save, Upload, Check, Heart, Music, ZoomIn, ZoomOut, RotateCw, Loader2, Link, CloudUpload } from 'lucide-react';
 import { Button } from './Button';
 import { convertSolarToLunarFull } from '../utils/lunar';
 import Cropper from 'react-easy-crop';
@@ -13,9 +13,10 @@ import { collection, addDoc } from 'firebase/firestore';
 interface TemplateRedGoldProps {
   data: InvitationData;
   onSave?: (newData: InvitationData) => void;
+  onAutosave?: (newData: InvitationData) => void;
   readonly?: boolean;
-  invitationId?: string; // ID của thiệp để lưu RSVP đúng chỗ
-  guestName?: string; // Tên khách mời từ URL
+  invitationId?: string; 
+  guestName?: string; 
 }
 
 interface EditingFieldState {
@@ -25,11 +26,12 @@ interface EditingFieldState {
     fontSize?: number;
 }
 
-export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialData, onSave, readonly = false, invitationId, guestName }) => {
+export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialData, onSave, onAutosave, readonly = false, invitationId, guestName }) => {
   const [localData, setLocalData] = useState<InvitationData>(initialData);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showBankPopup, setShowBankPopup] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
   
   // State cho Popup Thank You (RSVP Success)
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -41,8 +43,8 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   const [editingField, setEditingField] = useState<EditingFieldState | null>(null);
 
   // --- RSVP STATE ---
-  const [guestNameInput, setGuestNameInput] = useState(guestName || ''); // Auto-fill nếu có tên từ URL
-  const [guestRelation, setGuestRelation] = useState(''); // Bạn là gì của Dâu Rể
+  const [guestNameInput, setGuestNameInput] = useState(guestName || ''); 
+  const [guestRelation, setGuestRelation] = useState(''); 
   const [guestWishes, setGuestWishes] = useState('');
   const [attendance, setAttendance] = useState('Có Thể Tham Dự');
   const [isSubmittingRSVP, setIsSubmittingRSVP] = useState(false);
@@ -61,6 +63,23 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   const musicInputRef = useRef<HTMLInputElement>(null);
   
   const activeImageFieldRef = useRef<string | null>(null);
+
+  // --- AUTOSAVE LOGIC ---
+  useEffect(() => {
+    // Chỉ autosave nếu đang ở chế độ chỉnh sửa và không phải readonly
+    if (!isEditMode || readonly || !onAutosave) return;
+
+    // Set status to saving immediately when data changes
+    setSaveStatus('saving');
+
+    const timer = setTimeout(() => {
+        onAutosave(localData);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+    }, 2000); // 2 seconds debounce
+
+    return () => clearTimeout(timer);
+  }, [localData, isEditMode, onAutosave, readonly]);
 
   // Handle Music Toggle & Music Change
   const handleMusicClick = () => {
@@ -759,15 +778,31 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
       <div className="red-gold-root shadow-2xl relative">
         <audio ref={audioRef} src={localData.musicUrl || "https://statics.pancake.vn/web-media/5e/ee/bf/4a/afa10d3bdf98ca17ec3191ebbfd3c829d135d06939ee1f1b712d731d-w:0-h:0-l:2938934-t:audio/mpeg.mp3"} loop />
         
-        {/* --- EDIT BUTTON (Top Right) - HIDDEN IN READONLY --- */}
+        {/* --- EDIT BUTTON (Top Right) --- */}
         {!readonly && (
-            <button
-                onClick={() => isEditMode ? handleSave() : setIsEditMode(true)}
-                className="absolute top-4 right-4 z-[150] p-2 bg-white/60 hover:bg-white backdrop-blur-md rounded-full shadow-sm transition-all text-gray-700 hover:text-rose-600"
-                title={isEditMode ? "Lưu thay đổi" : "Chỉnh sửa mẫu"}
-            >
-                {isEditMode ? <Save className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}
-            </button>
+            <div className="absolute top-4 right-4 z-[150] flex items-center gap-2">
+                 {/* Autosave Status Badge */}
+                 {isEditMode && saveStatus !== 'idle' && (
+                     <motion.div 
+                        initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        className="bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
+                     >
+                         {saveStatus === 'saving' ? (
+                             <><CloudUpload className="w-3 h-3 animate-bounce" /> Đang lưu...</>
+                         ) : (
+                             <><Check className="w-3 h-3 text-green-400" /> Đã lưu</>
+                         )}
+                     </motion.div>
+                 )}
+                 
+                 <button
+                    onClick={() => isEditMode ? handleSave() : setIsEditMode(true)}
+                    className={`p-2 backdrop-blur-md rounded-full shadow-sm transition-all ${isEditMode ? 'bg-rose-600 text-white shadow-rose-300' : 'bg-white/60 hover:bg-white text-gray-700 hover:text-rose-600'}`}
+                    title={isEditMode ? "Lưu thay đổi" : "Chỉnh sửa mẫu"}
+                >
+                    {isEditMode ? <Check className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}
+                </button>
+            </div>
         )}
 
         {/* ... (Gate effect and top sections 1-4 remain same) ... */}

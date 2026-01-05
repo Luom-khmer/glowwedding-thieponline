@@ -12,10 +12,11 @@ interface PreviewProps {
   template: Template;
   onBack: () => void;
   onSave?: (newData: InvitationData) => void;
-  readonly?: boolean; // Nhận prop readonly từ App
+  onAutosave?: (newData: InvitationData) => void; // New Prop for Autosave
+  readonly?: boolean; 
 }
 
-export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave, readonly = false }) => {
+export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave, onAutosave, readonly = false }) => {
   
   // Logic render cho mẫu Red Gold và Personalized
   if (template.style === 'red-gold' || template.style === 'personalized') {
@@ -46,13 +47,15 @@ export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave
                    <TemplateRedGold 
                         data={data} 
                         onSave={onSave} 
-                        readonly={readonly} // Truyền readonly xuống
+                        onAutosave={onAutosave} // Pass autosave
+                        readonly={readonly} 
                    />
                ) : (
                    <TemplatePersonalized 
                         data={data} 
                         onSave={onSave} 
-                        readonly={readonly} // Truyền readonly xuống
+                        onAutosave={onAutosave} // Pass autosave
+                        readonly={readonly} 
                    />
                )}
            </div>

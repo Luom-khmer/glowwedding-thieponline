@@ -86,6 +86,33 @@ const mergeWithDefaults = (data: InvitationData): InvitationData => {
     };
 };
 
+// Helper để làm sạch dữ liệu trước khi lưu vào Firebase (Fix lỗi "invalid nested entity")
+const sanitizeData = (data: InvitationData): InvitationData => {
+    const clean = { ...data };
+    
+    // Firebase ghét 'undefined' trong mảng. 
+    // Chúng ta chuyển tất cả undefined thành chuỗi rỗng "".
+    if (clean.albumImages) {
+        clean.albumImages = Array.from(clean.albumImages).map(item => item || "");
+    }
+    if (clean.galleryImages) {
+        clean.galleryImages = Array.from(clean.galleryImages).map(item => item || "");
+    }
+    
+    // Đảm bảo elementStyles không chứa undefined values
+    if (clean.elementStyles) {
+        const cleanStyles: any = {};
+        Object.keys(clean.elementStyles).forEach(key => {
+            if (clean.elementStyles && clean.elementStyles[key]) {
+                cleanStyles[key] = { ...clean.elementStyles[key] };
+            }
+        });
+        clean.elementStyles = cleanStyles;
+    }
+
+    return clean;
+};
+
 function App() {
   const [view, setView] = useState<ViewState>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -134,7 +161,6 @@ function App() {
               
               if (inv) {
                   // CRITICAL FIX: Merge dữ liệu tải về với dữ liệu mặc định
-                  // để tránh mất chữ/ảnh nếu DB lưu thiếu field
                   inv.data = mergeWithDefaults(inv.data);
 
                   setViewingInvitation(inv);
@@ -226,8 +252,8 @@ function App() {
         const currentInv = savedInvitations.find(i => i.id === editingId);
         if (currentInv) {
             try {
-                // Lưu thầm lặng (không hiện loading modal)
-                await invitationService.updateInvitation(editingId, currentInv.customerName, newData);
+                // Lưu thầm lặng (không hiện loading modal) - và nhớ sanitize
+                await invitationService.updateInvitation(editingId, currentInv.customerName, sanitizeData(newData));
                 console.log("Autosave success for:", editingId);
             } catch (e) {
                 console.error("Autosave failed", e);
@@ -265,12 +291,15 @@ function App() {
     if (!pendingSaveData || !user) return;
 
     setIsSaving(true);
+    // Sanitize data before saving (fix 'invalid nested entity')
+    const safeData = sanitizeData(pendingSaveData);
+
     try {
         if (editingId) {
-            await invitationService.updateInvitation(editingId, saveNameInput, pendingSaveData);
+            await invitationService.updateInvitation(editingId, saveNameInput, safeData);
             alert("Cập nhật thành công!");
         } else {
-            await invitationService.createInvitation(saveNameInput, pendingSaveData, user.email);
+            await invitationService.createInvitation(saveNameInput, safeData, user.email);
             alert("Đã lưu thiệp thành công! Link chia sẻ đã sẵn sàng.");
         }
         

@@ -209,13 +209,17 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
             else if (currentField.startsWith('albumImages-')) {
                  const parts = currentField.split('-');
                  const index = parseInt(parts[1], 10);
+                 // FIX: Tạo mảng mới và lấp đầy khoảng trống bằng chuỗi rỗng để tránh undefined
                  const newAlbum = [...(prev.albumImages || [])];
+                 while (newAlbum.length <= index) newAlbum.push(""); 
                  newAlbum[index] = croppedImageBase64;
                  newData.albumImages = newAlbum;
             } else if (currentField.startsWith('galleryImages-')) {
                 const parts = currentField.split('-');
                 const index = parseInt(parts[1], 10);
+                // FIX: Tạo mảng mới và lấp đầy khoảng trống bằng chuỗi rỗng để tránh undefined
                 const newGallery = [...(prev.galleryImages || [])];
+                while (newGallery.length <= index) newGallery.push(""); 
                 newGallery[index] = croppedImageBase64;
                 newData.galleryImages = newGallery;
             }

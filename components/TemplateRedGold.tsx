@@ -312,7 +312,9 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                  if (parts.length > 1) {
                      const index = parseInt(parts[1], 10);
                      if (!isNaN(index)) {
+                         // FIX: Tạo mảng mới và lấp đầy khoảng trống bằng chuỗi rỗng để tránh undefined
                          const newAlbum = [...(prev.albumImages || [])];
+                         while (newAlbum.length <= index) newAlbum.push(""); 
                          newAlbum[index] = croppedImageBase64;
                          newData.albumImages = newAlbum;
                      }
@@ -322,8 +324,9 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                 if (parts.length > 1) {
                     const index = parseInt(parts[1], 10);
                     if (!isNaN(index)) {
+                        // FIX: Tạo mảng mới và lấp đầy khoảng trống bằng chuỗi rỗng để tránh undefined
                         const newGallery = [...(prev.galleryImages || [])];
-                        while (newGallery.length <= index) newGallery.push('');
+                        while (newGallery.length <= index) newGallery.push(""); 
                         newGallery[index] = croppedImageBase64;
                         newData.galleryImages = newGallery;
                     }
@@ -509,7 +512,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
     .pointer-events-none { pointer-events: none; }
     
     .section-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: 100% 100%; z-index: 0; }
-    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff; }
+    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff; }
 
     /* Fonts */
     .font-cafeta { font-family: "UTM-Cafeta", sans-serif; }

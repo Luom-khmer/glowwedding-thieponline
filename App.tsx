@@ -638,7 +638,7 @@ function App() {
                     </button>
                 )}
 
-                <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-hidden">
+                <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-y-auto">
                      {viewingInvitation.data.centerImage ? (
                         <TemplateRedGold 
                             data={viewingInvitation.data} 

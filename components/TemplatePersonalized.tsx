@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { InvitationData } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Pencil, Save, Upload, Check, Music, ZoomIn, ZoomOut, RotateCw, Heart, Loader2, Link, CloudUpload } from 'lucide-react';
+import { X, Pencil, Save, Upload, Check, Music, ZoomIn, ZoomOut, RotateCw, Heart, Loader2, Link, UploadCloud } from 'lucide-react';
 import { Button } from './Button';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
@@ -489,7 +489,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                         className="bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-sm"
                      >
                          {saveStatus === 'saving' ? (
-                             <><CloudUpload className="w-3 h-3 animate-bounce" /> Đang lưu...</>
+                             <><UploadCloud className="w-3 h-3 animate-bounce" /> Đang lưu...</>
                          ) : (
                              <><Check className="w-3 h-3 text-green-400" /> Đã lưu</>
                          )}

@@ -615,7 +615,7 @@ function App() {
                 animate={{ opacity: 1 }}
                 className="w-full h-screen bg-black flex items-center justify-center relative"
              >
-                {/* Chỉ hiển thị nút đóng nếu là Editor đang xem thử, khách thật sẽ không thấy nút này */}
+                {/* Chỉ hiển thị nút đóng nếu là Editor đang xem thử (CHƯA CÓ ID), khách thật (CÓ ID) sẽ không thấy nút này */}
                 {canEdit && !window.location.search.includes('invitationId') && (
                     <button 
                         onClick={() => setView('guest-manager')}
@@ -626,8 +626,8 @@ function App() {
                     </button>
                 )}
                 
-                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (CHỈ HIỆN CHO ADMIN/EDITOR) */}
-                {canEdit && (
+                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (CHỈ HIỆN CHO ADMIN/EDITOR VÀ KHI KHÔNG PHẢI LÀ LINK CHIA SẺ TRỰC TIẾP) */}
+                {canEdit && !window.location.search.includes('invitationId') && (
                     <button 
                         onClick={() => setIsLinkGeneratorOpen(true)}
                         className="fixed bottom-20 left-4 z-[9999] bg-[#7d1f2a]/90 hover:bg-[#7d1f2a] text-white rounded-full p-3 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pr-4 border border-rose-300"

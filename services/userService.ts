@@ -13,53 +13,48 @@ export const userService = {
     const userSnap = await getDoc(userRef);
     const email = firebaseUser.email || '';
 
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      let currentRole = userData.role || 'user';
+    // Logic xác định role
+    let role: UserRole = 'user';
 
-      // TỰ ĐỘNG NÂNG QUYỀN ADMIN NẾU LÀ SUPER ADMIN
-      if (SUPER_ADMINS.includes(email) && currentRole !== 'admin') {
-          console.log(`Auto-upgrading ${email} to Admin`);
-          currentRole = 'admin';
-          await updateDoc(userRef, { role: 'admin' });
-      }
-
-      return {
-        uid: firebaseUser.uid,
-        name: firebaseUser.displayName || 'User',
-        email: email,
-        picture: firebaseUser.photoURL || '',
-        role: currentRole
-      };
+    // 1. Kiểm tra nếu là Super Admin -> Luôn luôn là Admin
+    if (SUPER_ADMINS.includes(email)) {
+        role = 'admin';
+    } else if (userSnap.exists()) {
+        // 2. Nếu user thường đã tồn tại, lấy role từ DB
+        const userData = userSnap.data();
+        role = userData.role || 'user';
     } else {
-      // Logic cho User mới
-      const usersCol = collection(db, 'users');
-      const allUsers = await getDocs(usersCol);
-      
-      // Mặc định là 'user', trừ khi là người đầu tiên HOẶC nằm trong danh sách SUPER_ADMINS
-      let initialRole: UserRole = allUsers.empty ? 'admin' : 'user';
-
-      if (SUPER_ADMINS.includes(email)) {
-          initialRole = 'admin';
-      }
-
-      const newUser: User = {
-        uid: firebaseUser.uid,
-        name: firebaseUser.displayName || 'User',
-        email: email,
-        picture: firebaseUser.photoURL || '',
-        role: initialRole
-      };
-
-      await setDoc(userRef, {
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-        createdAt: new Date().toISOString()
-      });
-
-      return newUser;
+        // 3. Nếu là user mới tinh, kiểm tra xem có phải user đầu tiên của hệ thống không
+        const usersCol = collection(db, 'users');
+        const allUsers = await getDocs(usersCol);
+        if (allUsers.empty) {
+            role = 'admin';
+        }
     }
+
+    // Cập nhật lại thông tin vào Firestore (để đảm bảo Super Admin luôn được update quyền nếu lỡ bị mất)
+    const userDataToSave = {
+        email: email,
+        name: firebaseUser.displayName || 'User',
+        role: role,
+        lastLogin: new Date().toISOString()
+    };
+    
+    // Nếu user chưa tồn tại thì thêm createdAt
+    if (!userSnap.exists()) {
+        Object.assign(userDataToSave, { createdAt: new Date().toISOString() });
+    }
+
+    // Dùng setDoc với merge: true để cập nhật hoặc tạo mới
+    await setDoc(userRef, userDataToSave, { merge: true });
+
+    return {
+      uid: firebaseUser.uid,
+      name: firebaseUser.displayName || 'User',
+      email: email,
+      picture: firebaseUser.photoURL || '',
+      role: role
+    };
   },
 
   // Lấy danh sách tất cả user (Chỉ dành cho Admin)

@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { InvitationData, Template } from '../types';
-import { MapPin, Calendar, Clock, Heart, ArrowLeft } from 'lucide-react';
+import { MapPin, Calendar, Clock, Heart, ArrowLeft, Lock } from 'lucide-react';
 import { Button } from './Button';
 import { TemplateRedGold } from './TemplateRedGold';
 import { TemplatePersonalized } from './TemplatePersonalized';
@@ -12,36 +12,55 @@ interface PreviewProps {
   template: Template;
   onBack: () => void;
   onSave?: (newData: InvitationData) => void;
+  readonly?: boolean; // Nhận prop readonly từ App
 }
 
-export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave }) => {
+export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave, readonly = false }) => {
   
   // Logic render cho mẫu Red Gold và Personalized
   if (template.style === 'red-gold' || template.style === 'personalized') {
      return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-4">
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-4 relative">
+           
            {/* Mobile Buttons Controls */}
-           <div className="fixed bottom-4 left-20 z-[60] flex flex-col gap-2">
+           <div className="fixed bottom-4 left-4 md:left-20 z-[60] flex flex-col gap-2">
                 <Button variant="secondary" onClick={onBack} className="shadow-xl rounded-full w-12 h-12 p-0 flex items-center justify-center" title="Quay lại">
                     <ArrowLeft className="w-6 h-6" />
                 </Button>
            </div>
            
+           {/* Chỉ hiện cảnh báo này nếu đang ở chế độ readonly (User thường) */}
+           {readonly && (
+               <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[70] bg-black/70 text-white px-4 py-2 rounded-full flex items-center gap-2 backdrop-blur-md shadow-lg pointer-events-none">
+                    <Lock className="w-4 h-4 text-amber-400" />
+                    <span className="text-sm font-medium">Chế độ chỉ xem (Cần quyền Editor để sửa)</span>
+               </div>
+           )}
+           
            <div className="w-full max-w-[420px] bg-white shadow-2xl overflow-hidden relative">
                <div className="fixed top-0 left-0 w-full bg-black/50 text-white text-center py-1 z-50 text-xs md:hidden">
-                   Vuốt để xem • Nhấn bút chì góc phải để sửa
+                   {readonly ? "Vuốt để xem thiệp mẫu" : "Vuốt để xem • Nhấn bút chì góc phải để sửa"}
                </div>
+               
                {template.style === 'red-gold' ? (
-                   <TemplateRedGold data={data} onSave={onSave} />
+                   <TemplateRedGold 
+                        data={data} 
+                        onSave={onSave} 
+                        readonly={readonly} // Truyền readonly xuống
+                   />
                ) : (
-                   <TemplatePersonalized data={data} onSave={onSave} />
+                   <TemplatePersonalized 
+                        data={data} 
+                        onSave={onSave} 
+                        readonly={readonly} // Truyền readonly xuống
+                   />
                )}
            </div>
         </div>
      );
   }
 
-  // Style config based on template style
+  // (Phần code cũ cho các mẫu khác - giữ nguyên logic hiển thị)
   const getStyleClasses = () => {
     switch(template.style) {
         case 'luxury': return 'border-4 border-double border-amber-300 bg-gradient-to-br from-slate-50 to-amber-50 text-amber-900';
@@ -122,7 +141,10 @@ export const Preview: React.FC<PreviewProps> = ({ data, template, onBack, onSave
         <Button variant="secondary" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Chọn mẫu khác
         </Button>
-        <Button onClick={() => onSave ? onSave(data) : alert("Tính năng chia sẻ đang phát triển!")}>Lưu mẫu này</Button>
+        {/* Chỉ hiện nút Lưu nếu không phải readonly */}
+        {!readonly && (
+            <Button onClick={() => onSave ? onSave(data) : alert("Tính năng chia sẻ đang phát triển!")}>Lưu mẫu này</Button>
+        )}
       </div>
     </div>
   );

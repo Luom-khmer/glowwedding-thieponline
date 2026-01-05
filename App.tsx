@@ -74,11 +74,14 @@ function App() {
   const [viewingInvitation, setViewingInvitation] = useState<SavedInvitation | null>(null);
 
   // Role Helpers
-  const canEdit = user && (user.role === 'admin' || user.role === 'editor');
-  const isAdmin = user && user.role === 'admin';
+  // canEdit: Có quyền chỉnh sửa không? (Admin hoặc Editor)
+  const canEdit = user ? (user.role === 'admin' || user.role === 'editor') : false;
+  // isAdmin: Có quyền quản trị hệ thống không?
+  const isAdmin = user ? user.role === 'admin' : false;
 
   // Handlers
   const handleStart = () => {
+      // Nếu có quyền thì vào Template, chưa thì bắt login
       if (canEdit) {
           setView('templates');
       } else {
@@ -87,9 +90,9 @@ function App() {
   };
   
   const handleSelectTemplate = (t: Template) => {
-    // Chặn người dùng thường vào chỉnh sửa
+    // Nếu không có quyền, CHẶN NGAY LẬP TỨC
     if (!canEdit) {
-        alert("Bạn cần quyền 'Editor' hoặc 'Admin' để tạo mẫu thiệp.\nVui lòng liên hệ quản trị viên để được cấp quyền.");
+        alert("Bạn đang ở quyền 'User' (Khách). \nBạn cần quyền 'Editor' hoặc 'Admin' để chỉnh sửa thiệp.\nVui lòng liên hệ Admin để được cấp quyền.");
         return;
     }
     setSelectedTemplate(t);
@@ -118,7 +121,7 @@ function App() {
     setIsLoadingAuth(true);
     try {
         const result = await signInWithPopup(auth, googleProvider);
-        // Sau khi login Firebase, đồng bộ user vào Firestore để lấy Role
+        // Sau khi login Firebase, đồng bộ user vào Firestore để lấy Role mới nhất
         const syncedUser = await userService.syncUser(result.user);
         setUser(syncedUser);
         setView('home');
@@ -135,6 +138,10 @@ function App() {
   }
   
   const handleSaveRequest = (newData: InvitationData) => {
+    if (!canEdit) {
+        alert("Bạn không có quyền lưu thiệp này.");
+        return;
+    }
     setPendingSaveData(newData);
     setSaveNameInput(""); 
     setIsSaveModalOpen(true); 
@@ -174,13 +181,13 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-            // Khi reload trang, cần fetch lại role từ DB
+            // Khi reload trang, fetch lại role từ DB để đảm bảo đúng quyền
             try {
                 const syncedUser = await userService.syncUser(currentUser);
                 setUser(syncedUser);
             } catch (e) {
                 console.error("Error syncing user on reload", e);
-                // Fallback nếu lỗi mạng
+                // Fallback nếu lỗi mạng, mặc định là user để an toàn
                 setUser({
                     uid: currentUser.uid,
                     name: currentUser.displayName || 'User',
@@ -214,6 +221,7 @@ function App() {
           </div>
           
           <div className="hidden md:flex space-x-8 items-center">
+            {/* Menu chỉ hiện cho Admin/Editor */}
             {canEdit && (
                 <>
                     <button onClick={() => setView('templates')} className="text-gray-600 hover:text-rose-500 transition font-medium">Mẫu Thiệp</button>
@@ -223,6 +231,7 @@ function App() {
                 </>
             )}
             
+            {/* Menu Admin chỉ hiện cho Admin */}
             {isAdmin && (
                 <button onClick={() => setView('admin-dashboard')} className="text-purple-600 hover:text-purple-800 transition flex items-center gap-1 font-bold bg-purple-50 px-3 py-1 rounded-full">
                     <Shield className="w-4 h-4" /> Admin
@@ -415,6 +424,7 @@ function App() {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer group border border-gray-100 relative"
                     onClick={() => handleSelectTemplate(t)}
                   >
+                    {/* Hiển thị lớp phủ khóa nếu không phải Admin/Editor */}
                     {!canEdit && (
                         <div className="absolute inset-0 bg-gray-900/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
                             <div className="text-white text-center p-4">
@@ -442,6 +452,7 @@ function App() {
           )}
 
           {/* PREVIEW VIEW */}
+          {/* QUAN TRỌNG: Truyền tham số readonly={!canEdit} để khóa sửa nếu không có quyền */}
           {view === 'preview' && selectedTemplate && (
             <Preview 
                 key="preview"
@@ -449,11 +460,12 @@ function App() {
                 template={selectedTemplate} 
                 onBack={() => setView('templates')}
                 onSave={handleSaveRequest} 
+                readonly={!canEdit} 
             />
           )}
 
           {/* GUEST MANAGER VIEW (PROTECTED) */}
-          {view === 'guest-manager' && (
+          {view === 'guest-manager' && canEdit && (
               <motion.div
                 key="guest-manager"
                 initial={{ opacity: 0 }}

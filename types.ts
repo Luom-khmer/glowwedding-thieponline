@@ -59,13 +59,17 @@ export interface SavedInvitation {
   link: string;
 }
 
+export type UserRole = 'admin' | 'editor' | 'user';
+
 export interface User {
+  uid: string;
   name: string;
   email: string;
   picture: string;
+  role: UserRole;
 }
 
-export type ViewState = 'home' | 'templates' | 'editor' | 'preview' | 'login' | 'pricing' | 'guest-manager' | 'guest-view';
+export type ViewState = 'home' | 'templates' | 'editor' | 'preview' | 'login' | 'pricing' | 'guest-manager' | 'guest-view' | 'admin-dashboard';
 
 export const TEMPLATES: Template[] = [
   {

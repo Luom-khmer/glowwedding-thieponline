@@ -532,7 +532,8 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
            animate={isOpening ? "visible" : "hidden"}
            variants={contentContainerVariants}
         >
-            <motion.div variants={zoomIn} className="abs" style={{top:'80px', left:'3.5px', width:'413px', height:'60px', zIndex: 10}}>
+            {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) để không tràn viền */}
+            <motion.div variants={zoomIn} className="abs" style={{top:'80px', left:'30px', width:'360px', height:'60px', zIndex: 10}}>
                 <EditableWrapper field="groomName" label="Tên Dâu Rể" defaultFontSize={40} className="w-full text-center">
                     <h1 style={{fontFamily: 'UTM-Sloop, sans-serif', textShadow: '0px 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'} - {localData.brideName || 'Diệu Nhi'}</h1>
                 </EditableWrapper>
@@ -592,13 +593,15 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                 <h2 style={{fontFamily:'BlackMango-Medium, sans-serif', fontSize:'14px', textAlign:'center'}}>Trân Trọng Báo Tin Lễ Thành Hôn Của</h2>
              </motion.div>
 
-             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'273.5px', left:'3.5px', width:'413px'}}>
+             {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) */}
+             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'273.5px', left:'30px', width:'360px'}}>
                  <EditableWrapper field="groomName" label="Chú Rể" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'}</h1></EditableWrapper>
              </motion.div>
              <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'316px', left:'141.5px', width:'137px'}}>
                  <h1 style={{fontFamily:'UTM-Azkia, sans-serif', fontSize:'40px', textAlign:'center'}}>&</h1>
              </motion.div>
-             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'355px', left:'3.5px', width:'413px'}}>
+             {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) */}
+             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'355px', left:'30px', width:'360px'}}>
                 <EditableWrapper field="brideName" label="Cô Dâu" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.brideName || 'Diệu Nhi'}</h1></EditableWrapper>
              </motion.div>
 
@@ -732,7 +735,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                  <p style={{fontFamily:'Arial, sans-serif', fontSize:'18px', fontWeight:'bold', textTransform:'uppercase'}}>Tháng {month} / {year}</p>
             </motion.div>
 
-            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'120px', left:'35px', width:'350px'}}>
+            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'120px', left:'40px', width:'340px'}}>
                  <div className="bg-white/80 p-4 rounded-xl shadow-lg border border-rose-100">
                     <div className="calendar-grid mb-2 border-b border-gray-200 pb-2">
                         <div className="font-bold text-rose-700">T2</div>
@@ -767,13 +770,15 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
 
         {/* --- SECTION 5: RSVP --- */}
         <div className="section-container" style={{ height: '522px', backgroundImage: 'url("https://content.pancake.vn/1/s840x1600/fwebp/fd/42/7d/0c/1ca1e8525f99e3105eb930cd8ed684a64b07a0d9df7e0c725ca9779c-w:1260-h:2400-l:65030-t:image/png.png")' }}>
-            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'124.5px', left:'35px', width:'350px', height:'312px', background:'rgba(177, 0, 0, 1)', borderRadius:'16px', border:'1px solid #e5e7eb'}}></motion.div>
+            {/* Tinh chỉnh: Giảm width còn 330px và căn giữa (left 45px) */}
+            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'124.5px', left:'45px', width:'330px', height:'312px', background:'rgba(177, 0, 0, 1)', borderRadius:'16px', border:'1px solid #e5e7eb'}}></motion.div>
             
             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs w-full text-center" style={{top:'14.3px', left:'58px', width:'304px'}}>
                 <h2 style={{fontFamily:'Ephesis-Regular, sans-serif', fontSize:'30px', lineHeight:1, color:'#000'}}>Xác Nhận Tham Dự<br/>&<br/>Gửi Lời Chúc</h2>
             </motion.div>
             
-            <div className="abs" style={{top:'144px', left:'56.5px', width:'307px', height:'277px'}}>
+            {/* Tinh chỉnh: Giảm width còn 290px và căn giữa tương đối (left 65px) */}
+            <div className="abs" style={{top:'144px', left:'65px', width:'290px', height:'277px'}}>
                 <div style={{height: '43px', marginBottom: '14px'}}>
                     <input 
                         className="inp-style" 

@@ -338,7 +338,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
     .abs { position: absolute; } .rel { position: relative; } .w-full { width: 100%; } .h-full { height: 100%; } .bg-cover { background-size: cover; background-position: center; background-repeat: no-repeat; }
     .pointer-events-none { pointer-events: none; }
     .section-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: 100% 100%; z-index: 0; }
-    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff; }
+    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff, 1px -1px #fff; }
     .font-cafeta { font-family: "UTM-Cafeta", sans-serif; } .font-ephesis { font-family: "Ephesis-Regular", cursive; } .font-mightiest { font-family: "SVN-Mightiest", serif; } .font-blackmango { font-family: "BlackMango-Medium", serif; } .font-sloop { font-family: "UTM-Sloop", cursive; } .font-azkia { font-family: "UTM-Azkia", cursive; } .font-alex { font-family: "AlexBrush-Regular", cursive; } .font-arial { font-family: 'Arial', sans-serif; } .font-oswald { font-family: 'Oswald', sans-serif; }
     .btn-red { background: rgba(177, 0, 0, 1); color: white; border-radius: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .inp-style { background: white; border: 1px solid rgba(142, 1, 1, 1); border-radius: 10px; color: rgba(153, 0, 0, 1); padding: 0 10px; width: 100%; height: 100%; outline: none; }
@@ -443,8 +443,9 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                 <div className="section-bg pointer-events-none" style={{ backgroundImage: 'url("https://content.pancake.vn/1/s840x1600/fwebp/fd/42/7d/0c/1ca1e8525f99e3105eb930cd8ed684a64b07a0d9df7e0c725ca9779c-w:1260-h:2400-l:65030-t:image/png.png")' }}></div>
                 <div className="content-layer relative z-10 w-full h-full">
                     <motion.div variants={zoomIn} className="abs w-full text-center" style={{top: '14px'}}><h2 className="font-ephesis text-[30px] leading-none">Xác Nhận Tham Dự<br/>&<br/>Gửi Lời Chúc</h2></motion.div>
-                    <div className="abs pointer-events-none" style={{top: '124px', left: '35px', width: '350px', height: '312px', background: '#902732', borderRadius: '16px'}}></div>
-                    <div className="abs z-20" style={{top: '144px', left: '56px', width: '307px'}}>
+                    {/* Tinh chỉnh width và left để không chạm biên đỏ */}
+                    <div className="abs pointer-events-none" style={{top: '124px', left: '45px', width: '330px', height: '312px', background: '#902732', borderRadius: '16px'}}></div>
+                    <div className="abs z-20" style={{top: '144px', left: '65px', width: '290px'}}>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Tên của bạn là?" value={guestNameInput} onChange={(e) => setGuestNameInput(e.target.value)} /></div>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Bạn là gì của Dâu Rể nhỉ?" value={guestRelation} onChange={(e) => setGuestRelation(e.target.value)} /></div>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Gửi lời chúc đến Dâu Rể nhé!" value={guestWishes} onChange={(e) => setGuestWishes(e.target.value)} /></div>

@@ -1,5 +1,4 @@
 
-
 export interface Template {
   id: string;
   name: string;
@@ -73,7 +72,7 @@ export interface User {
   role: UserRole;
 }
 
-export type ViewState = 'home' | 'templates' | 'editor' | 'preview' | 'login' | 'pricing' | 'guest-manager' | 'guest-view' | 'admin-dashboard';
+export type ViewState = 'home' | 'templates' | 'editor' | 'preview' | 'login' | 'pricing' | 'guest-manager' | 'guest-view' | 'admin-dashboard' | 'tool-generator';
 
 export const TEMPLATES: Template[] = [
   {

@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { SavedInvitation } from '../types';
-import { Copy, Trash2, ExternalLink, FolderOpen, Eye, Pencil, FileSpreadsheet } from 'lucide-react';
+import { Copy, Trash2, ExternalLink, FolderOpen, Eye, Pencil, FileSpreadsheet, Wrench } from 'lucide-react';
 import { Button } from './Button';
 
 interface GuestManagerProps {
@@ -10,13 +10,19 @@ interface GuestManagerProps {
   onDelete: (id: string) => void;
   onCreateNew: () => void;
   onView: (invitation: SavedInvitation) => void;
-  onEdit: (invitation: SavedInvitation) => void; // New Prop
+  onEdit: (invitation: SavedInvitation) => void;
 }
 
 export const GuestManager: React.FC<GuestManagerProps> = ({ invitations, onDelete, onCreateNew, onView, onEdit }) => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Đã sao chép link mẫu thiệp: ' + text);
+    alert('Đã sao chép: ' + text);
+  };
+
+  const copyToolLink = (invId: string) => {
+      // Tạo link tool riêng: domain/?mode=tool&invitationId=...
+      const toolLink = `${window.location.origin}?mode=tool&invitationId=${invId}`;
+      copyToClipboard(toolLink);
   };
 
   return (
@@ -73,25 +79,36 @@ export const GuestManager: React.FC<GuestManagerProps> = ({ invitations, onDelet
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
+                    <div className="flex items-center gap-2 w-full md:w-auto flex-wrap justify-end">
+                         {/* Nút gửi tool cho khách */}
+                         <button
+                            onClick={() => copyToolLink(inv.id)}
+                            className="flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 font-medium transition"
+                            title="Copy link Tool tạo tên khách (Gửi cho Dâu Rể)"
+                        >
+                            <Wrench className="w-4 h-4" /> <span className="hidden lg:inline text-xs">Link Tool</span>
+                        </button>
+
+                        <div className="w-px h-6 bg-gray-300 mx-1 hidden md:block"></div>
+
                         <button
                             onClick={() => onEdit(inv)}
                             className="flex items-center justify-center gap-2 px-3 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 font-medium transition"
                             title="Chỉnh sửa"
                         >
-                            <Pencil className="w-4 h-4" /> <span className="hidden md:inline">Sửa</span>
+                            <Pencil className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => onView(inv)}
                             className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium transition"
                             title="Xem như khách mời"
                         >
-                            <Eye className="w-4 h-4" /> <span className="hidden md:inline">Xem</span>
+                            <Eye className="w-4 h-4" />
                         </button>
                         <button 
                             onClick={() => copyToClipboard(inv.link)}
                             className="flex items-center justify-center gap-2 px-3 py-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 font-medium transition"
-                            title="Copy link"
+                            title="Copy link thiệp gốc"
                         >
                             <Copy className="w-4 h-4" />
                         </button>

@@ -11,7 +11,7 @@ import { GuestManager } from './components/GuestManager';
 import { TemplateRedGold } from './components/TemplateRedGold';
 import { TemplatePersonalized } from './components/TemplatePersonalized';
 import { AdminDashboard } from './components/AdminDashboard';
-import { LinkGeneratorModal } from './components/LinkGeneratorModal'; // Import Modal mới
+import { LinkGeneratorModal } from './components/LinkGeneratorModal';
 import { userService } from './services/userService';
 import { invitationService } from './services/invitationService';
 
@@ -88,12 +88,13 @@ function App() {
   const canEdit = user ? (user.role === 'admin' || user.role === 'editor') : false;
   const isAdmin = user ? user.role === 'admin' : false;
 
-  // --- EFFECT: LOAD INVITATION FROM URL (FOR GUESTS) ---
+  // --- EFFECT: LOAD INVITATION FROM URL (FOR GUESTS OR TOOL) ---
   useEffect(() => {
       const checkUrlForInvitation = async () => {
           const searchParams = new URLSearchParams(window.location.search);
           const invitationId = searchParams.get('invitationId');
-          const guestName = searchParams.get('guestName'); // Lấy tên khách từ URL
+          const guestName = searchParams.get('guestName');
+          const mode = searchParams.get('mode'); // Check mode (vd: tool)
 
           if (guestName) {
               setGuestNameFromUrl(guestName);
@@ -102,12 +103,19 @@ function App() {
           if (invitationId) {
               setIsLoadingInvitation(true);
               const inv = await invitationService.getInvitationById(invitationId);
+              
               if (inv) {
                   setViewingInvitation(inv);
-                  setView('guest-view');
+                  
+                  // Nếu mode là 'tool' -> Chuyển sang giao diện tool cho dâu rể dùng
+                  if (mode === 'tool') {
+                      setView('tool-generator');
+                  } else {
+                      setView('guest-view');
+                  }
               } else {
                   alert("Không tìm thấy thiệp mời này hoặc đã bị xóa!");
-                  window.history.pushState({}, '', '/'); // Reset URL
+                  window.history.pushState({}, '', '/');
                   setView('home');
               }
               setIsLoadingInvitation(false);
@@ -156,8 +164,7 @@ function App() {
     // @ts-ignore
     const currentApiKey = auth.app.options.apiKey;
     if (!currentApiKey || currentApiKey === "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs") {
-        // Chỉ hiện cảnh báo nếu là API Key mặc định trong code mẫu, 
-        // ở đây chúng ta đã có config thật trong file services/firebase.ts nên dòng này để safe guard thôi
+        // Warning if default key
     }
 
     setIsLoadingAuth(true);
@@ -184,14 +191,12 @@ function App() {
         return;
     }
 
-    // Inject current style into data if available
     const dataToSave = { ...newData };
     if (selectedTemplate) {
         dataToSave.style = selectedTemplate.style;
     }
 
     setPendingSaveData(dataToSave);
-    // Nếu đang edit, điền sẵn tên khách
     if (editingId) {
         const existingInv = savedInvitations.find(i => i.id === editingId);
         if (existingInv) setSaveNameInput(existingInv.customerName);
@@ -211,11 +216,9 @@ function App() {
     setIsSaving(true);
     try {
         if (editingId) {
-            // Update existing
             await invitationService.updateInvitation(editingId, saveNameInput, pendingSaveData);
             alert("Cập nhật thành công!");
         } else {
-            // Create new
             await invitationService.createInvitation(saveNameInput, pendingSaveData, user.email);
             alert("Đã lưu thiệp thành công! Link chia sẻ đã sẵn sàng.");
         }
@@ -224,11 +227,9 @@ function App() {
         setEditingId(null);
         setPendingSaveData(null);
         setView('guest-manager');
-        loadInvitations(); // Reload list
+        loadInvitations(); 
     } catch (e: any) {
         console.error("Save Error:", e);
-        
-        // CẢI THIỆN THÔNG BÁO LỖI
         if (e.code === 'permission-denied') {
              alert("🔴 LỖI: KHÔNG CÓ QUYỀN GHI DỮ LIỆU (Permission Denied)\n\nNguyên nhân: Bạn chưa dán đoạn code 'Luật Bảo Mật' vào Firebase Console.\n\nCách sửa: Hãy copy đoạn code tôi vừa gửi và dán vào Tab 'Rules' trên Firebase Console của bạn.");
         } else if (e.message && (e.message.includes("API key") || e.code === "auth/api-key-not-valid-please-pass-a-valid-api-key")) {
@@ -258,15 +259,11 @@ function App() {
   const handleEditInvitation = (inv: SavedInvitation) => {
       setFormData(inv.data);
       setEditingId(inv.id);
-      
-      // Tìm template tương ứng để load vào Preview
-      const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; // Fallback
+      const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; 
       setSelectedTemplate(temp);
-      
       setView('preview');
   };
 
-  // Firebase Auth Observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
@@ -393,7 +390,7 @@ function App() {
     </nav>
   );
 
-  // Loading Screen for Guest View
+  // Loading Screen for Guest View & Tool View
   if (isLoadingInvitation) {
       return (
           <div className="min-h-screen flex items-center justify-center bg-rose-50">
@@ -403,6 +400,20 @@ function App() {
               </div>
           </div>
       );
+  }
+
+  // --- TOOL GENERATOR VIEW (Dành cho Dâu Rể tự tạo link) ---
+  if (view === 'tool-generator' && viewingInvitation) {
+     return (
+        <div className="min-h-screen bg-rose-50 flex items-center justify-center p-4">
+             <LinkGeneratorModal 
+                isOpen={true}
+                onClose={() => setView('guest-view')} // Nút đóng sẽ chuyển sang xem thiệp
+                baseUrl={window.location.origin + window.location.pathname + '?invitationId=' + viewingInvitation.id}
+                isStandalone={true}
+             />
+        </div>
+     );
   }
 
   return (
@@ -457,7 +468,7 @@ function App() {
         )}
       </AnimatePresence>
       
-      {/* GENERATE PERSONAL LINK MODAL */}
+      {/* GENERATE PERSONAL LINK MODAL (FOR ADMIN/EDITOR USE IN GUEST VIEW) */}
       <AnimatePresence>
           {isLinkGeneratorOpen && viewingInvitation && (
              <LinkGeneratorModal 
@@ -611,15 +622,17 @@ function App() {
                     </button>
                 )}
                 
-                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (Cho khách hoặc chủ tiệc) */}
-                <button 
-                    onClick={() => setIsLinkGeneratorOpen(true)}
-                    className="fixed bottom-20 left-4 z-[9999] bg-[#7d1f2a]/90 hover:bg-[#7d1f2a] text-white rounded-full p-3 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pr-4 border border-rose-300"
-                    title="Tạo link mời riêng"
-                >
-                    <LinkIcon className="w-5 h-5 animate-pulse" />
-                    <span className="text-xs font-bold uppercase">Tạo Link Mời</span>
-                </button>
+                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (CHỈ HIỆN CHO ADMIN/EDITOR) */}
+                {canEdit && (
+                    <button 
+                        onClick={() => setIsLinkGeneratorOpen(true)}
+                        className="fixed bottom-20 left-4 z-[9999] bg-[#7d1f2a]/90 hover:bg-[#7d1f2a] text-white rounded-full p-3 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pr-4 border border-rose-300"
+                        title="Tạo link mời riêng"
+                    >
+                        <LinkIcon className="w-5 h-5 animate-pulse" />
+                        <span className="text-xs font-bold uppercase">Tạo Link Mời</span>
+                    </button>
+                )}
 
                 <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-hidden">
                      {viewingInvitation.data.centerImage ? (

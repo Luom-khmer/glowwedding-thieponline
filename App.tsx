@@ -67,19 +67,30 @@ function App() {
               const inv = await invitationService.getInvitationById(invitationId);
               
               if (inv) {
-                  // --- CRITICAL FIX: MERGE WITH DEFAULT DATA ---
-                  // Nếu dữ liệu từ DB thiếu trường nào, sẽ tự động lấy từ DEFAULT_INVITATION_DATA
-                  // Deep merge cho elementStyles để đảm bảo font size không bị mất
+                  // --- ROBUST MERGE STRATEGY ---
+                  // Fix missing fields by falling back to DEFAULT_INVITATION_DATA if falsy in DB.
+                  // This is crucial for images and style which might be missing in legacy data.
                   const mergedData: InvitationData = {
                       ...DEFAULT_INVITATION_DATA,
                       ...inv.data,
+                      
+                      // Force defaults for critical visual elements if they are missing or empty
+                      style: inv.data.style || DEFAULT_INVITATION_DATA.style || 'red-gold',
+                      imageUrl: inv.data.imageUrl || DEFAULT_INVITATION_DATA.imageUrl,
+                      centerImage: inv.data.centerImage || DEFAULT_INVITATION_DATA.centerImage,
+                      footerImage: inv.data.footerImage || DEFAULT_INVITATION_DATA.footerImage,
+                      
+                      // For arrays, use default if DB array is empty or undefined
+                      albumImages: (inv.data.albumImages && inv.data.albumImages.length > 0) ? inv.data.albumImages : DEFAULT_INVITATION_DATA.albumImages,
+                      galleryImages: (inv.data.galleryImages && inv.data.galleryImages.length > 0) ? inv.data.galleryImages : DEFAULT_INVITATION_DATA.galleryImages,
+
+                      // Deep merge for elementStyles to preserve font sizes
                       elementStyles: {
                           ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
                           ...(inv.data.elementStyles || {})
                       }
                   };
                   
-                  // Update the invitation object with merged data
                   const safeInvitation = { ...inv, data: mergedData };
 
                   setViewingInvitation(safeInvitation);
@@ -250,10 +261,16 @@ function App() {
   };
   
   const handleViewAsGuest = (inv: SavedInvitation) => {
-      // Cũng phải merge data khi xem từ Dashboard để đảm bảo không lỗi
+      // Merge Data mạnh tay khi xem từ Dashboard
       const mergedData: InvitationData = {
           ...DEFAULT_INVITATION_DATA,
           ...inv.data,
+          style: inv.data.style || DEFAULT_INVITATION_DATA.style || 'red-gold',
+          imageUrl: inv.data.imageUrl || DEFAULT_INVITATION_DATA.imageUrl,
+          centerImage: inv.data.centerImage || DEFAULT_INVITATION_DATA.centerImage,
+          footerImage: inv.data.footerImage || DEFAULT_INVITATION_DATA.footerImage,
+          albumImages: (inv.data.albumImages && inv.data.albumImages.length > 0) ? inv.data.albumImages : DEFAULT_INVITATION_DATA.albumImages,
+          galleryImages: (inv.data.galleryImages && inv.data.galleryImages.length > 0) ? inv.data.galleryImages : DEFAULT_INVITATION_DATA.galleryImages,
           elementStyles: {
               ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
               ...(inv.data.elementStyles || {})
@@ -264,10 +281,16 @@ function App() {
   };
 
   const handleEditInvitation = (inv: SavedInvitation) => {
-      // Merge data khi edit để tránh mất field khi lưu lại
+      // Merge data khi edit
       const mergedData: InvitationData = {
           ...DEFAULT_INVITATION_DATA,
           ...inv.data,
+          style: inv.data.style || DEFAULT_INVITATION_DATA.style || 'red-gold',
+          imageUrl: inv.data.imageUrl || DEFAULT_INVITATION_DATA.imageUrl,
+          centerImage: inv.data.centerImage || DEFAULT_INVITATION_DATA.centerImage,
+          footerImage: inv.data.footerImage || DEFAULT_INVITATION_DATA.footerImage,
+          albumImages: (inv.data.albumImages && inv.data.albumImages.length > 0) ? inv.data.albumImages : DEFAULT_INVITATION_DATA.albumImages,
+          galleryImages: (inv.data.galleryImages && inv.data.galleryImages.length > 0) ? inv.data.galleryImages : DEFAULT_INVITATION_DATA.galleryImages,
           elementStyles: {
               ...(DEFAULT_INVITATION_DATA.elementStyles || {}),
               ...(inv.data.elementStyles || {})
@@ -276,7 +299,7 @@ function App() {
       
       setFormData(mergedData);
       setEditingId(inv.id);
-      const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; 
+      const temp = TEMPLATES.find(t => t.style === mergedData.style) || TEMPLATES[0]; 
       setSelectedTemplate(temp);
       setView('preview');
   };

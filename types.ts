@@ -127,5 +127,6 @@ export const DEFAULT_INVITATION_DATA: InvitationData = {
   lunarDate: '(Tức Ngày 18 Tháng 01 Năm Ất Tỵ)',
   groomAddress: 'Quận 8, TP. Hồ Chí Minh',
   brideAddress: 'Quận 8, TP. Hồ Chí Minh',
+  style: 'red-gold', // Default fallback
   elementStyles: {}
 };

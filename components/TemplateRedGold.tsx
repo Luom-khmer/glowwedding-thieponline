@@ -64,6 +64,11 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   
   const activeImageFieldRef = useRef<string | null>(null);
 
+  // Sync state with props when data loads from URL
+  useEffect(() => {
+      setLocalData(initialData);
+  }, [initialData]);
+
   // --- AUTOSAVE LOGIC ---
   useEffect(() => {
     // Chỉ autosave nếu đang ở chế độ chỉnh sửa và không phải readonly

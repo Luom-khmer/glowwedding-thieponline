@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Menu, X, ArrowRight, User as UserIcon, LogOut, FolderHeart, Save, Heart, ShieldCheck, Lock, Shield, Loader2, Link as LinkIcon } from 'lucide-react';
@@ -62,12 +63,9 @@ const mergeWithDefaults = (data: InvitationData): InvitationData => {
     return {
         ...initialData,
         ...data,
-        // Merge styles cẩn thận
         elementStyles: { ...initialData.elementStyles, ...(data.elementStyles || {}) },
-        // Đảm bảo mảng ảnh không bị rỗng
         albumImages: (data.albumImages && data.albumImages.length > 0) ? data.albumImages : initialData.albumImages,
         galleryImages: (data.galleryImages && data.galleryImages.length > 0) ? data.galleryImages : initialData.galleryImages,
-        // Fallback các trường quan trọng nếu bị null/rỗng
         groomName: data.groomName || initialData.groomName,
         brideName: data.brideName || initialData.brideName,
         date: data.date || initialData.date,
@@ -80,7 +78,6 @@ const mergeWithDefaults = (data: InvitationData): InvitationData => {
         bankInfo: data.bankInfo || initialData.bankInfo,
         qrCodeUrl: data.qrCodeUrl || initialData.qrCodeUrl,
         musicUrl: data.musicUrl || initialData.musicUrl,
-        // QUAN TRỌNG: Giữ nguyên style từ DB nếu có
         style: data.style || initialData.style
     };
 };
@@ -88,17 +85,12 @@ const mergeWithDefaults = (data: InvitationData): InvitationData => {
 // Helper để làm sạch dữ liệu trước khi lưu vào Firebase (Fix lỗi "invalid nested entity")
 const sanitizeData = (data: InvitationData): InvitationData => {
     const clean = { ...data };
-    
-    // Firebase ghét 'undefined' trong mảng. 
-    // Chúng ta chuyển tất cả undefined thành chuỗi rỗng "".
     if (clean.albumImages) {
         clean.albumImages = Array.from(clean.albumImages).map(item => item || "");
     }
     if (clean.galleryImages) {
         clean.galleryImages = Array.from(clean.galleryImages).map(item => item || "");
     }
-    
-    // Đảm bảo elementStyles không chứa undefined values
     if (clean.elementStyles) {
         const cleanStyles: any = {};
         Object.keys(clean.elementStyles).forEach(key => {
@@ -108,7 +100,6 @@ const sanitizeData = (data: InvitationData): InvitationData => {
         });
         clean.elementStyles = cleanStyles;
     }
-
     return clean;
 };
 
@@ -120,35 +111,29 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   
-  // State for Saving Flow
   const [savedInvitations, setSavedInvitations] = useState<SavedInvitation[]>([]);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveNameInput, setSaveNameInput] = useState("");
   const [pendingSaveData, setPendingSaveData] = useState<InvitationData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // State for Editing
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // State for Guest View
   const [viewingInvitation, setViewingInvitation] = useState<SavedInvitation | null>(null);
   const [isLoadingInvitation, setIsLoadingInvitation] = useState(false);
   
-  // State for Personalized Link Generation
   const [guestNameFromUrl, setGuestNameFromUrl] = useState<string>('');
   const [isLinkGeneratorOpen, setIsLinkGeneratorOpen] = useState(false);
 
-  // Role Helpers
   const canEdit = user ? (user.role === 'admin' || user.role === 'editor') : false;
   const isAdmin = user ? user.role === 'admin' : false;
 
-  // --- EFFECT: LOAD INVITATION FROM URL (FOR GUESTS OR TOOL) ---
   useEffect(() => {
       const checkUrlForInvitation = async () => {
           const searchParams = new URLSearchParams(window.location.search);
           const invitationId = searchParams.get('invitationId');
           const guestName = searchParams.get('guestName');
-          const mode = searchParams.get('mode'); // Check mode (vd: tool)
+          const mode = searchParams.get('mode');
 
           if (guestName) {
               setGuestNameFromUrl(guestName);
@@ -159,12 +144,9 @@ function App() {
               const inv = await invitationService.getInvitationById(invitationId);
               
               if (inv) {
-                  // CRITICAL FIX: Merge dữ liệu tải về với dữ liệu mặc định
                   inv.data = mergeWithDefaults(inv.data);
-
                   setViewingInvitation(inv);
                   
-                  // Nếu mode là 'tool' -> Chuyển sang giao diện tool cho dâu rể dùng
                   if (mode === 'tool') {
                       setView('tool-generator');
                   } else {
@@ -182,7 +164,6 @@ function App() {
       checkUrlForInvitation();
   }, []);
 
-  // --- EFFECT: LOAD SAVED INVITATIONS (FOR ADMIN) ---
   useEffect(() => {
       if (canEdit && view === 'guest-manager') {
           loadInvitations();
@@ -194,12 +175,10 @@ function App() {
       setSavedInvitations(list);
   }
 
-  // Handlers
   const handleStart = () => setView('templates');
   
   const handleSelectTemplate = (t: Template) => {
     setSelectedTemplate(t);
-    // Nếu đang không edit (tạo mới), reset form về mặc định
     if (!editingId) {
        setFormData(initialData);
     }
@@ -226,8 +205,6 @@ function App() {
         setView('home');
     } catch (error: any) {
         console.error("Login Error:", error);
-        
-        // Handle Specific Config Errors
         if (error.code === 'auth/network-request-failed') {
              alert("🔴 LỖI KẾT NỐI (Network Request Failed)\n\nKhông thể kết nối đến Firebase. Vui lòng kiểm tra:\n1. Kết nối mạng của bạn.\n2. Tên miền Vercel đã được thêm vào Authorized Domains trên Firebase Console chưa?\n3. Config trong services/firebase.ts có chính xác không?");
         } else if (error.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
@@ -244,14 +221,11 @@ function App() {
     alert(`Bạn đã chọn gói ${plan}. Hệ thống thanh toán đang được tích hợp.`);
   }
   
-  // --- AUTOSAVE HANDLER ---
   const handleAutosave = async (newData: InvitationData) => {
-    // Chỉ autosave nếu đang EDIT một thiệp ĐÃ CÓ (có editingId) và người dùng có quyền
     if (editingId && canEdit) {
         const currentInv = savedInvitations.find(i => i.id === editingId);
         if (currentInv) {
             try {
-                // Lưu thầm lặng (không hiện loading modal) - và nhớ sanitize
                 await invitationService.updateInvitation(editingId, currentInv.customerName, sanitizeData(newData));
                 console.log("Autosave success for:", editingId);
             } catch (e) {
@@ -290,7 +264,6 @@ function App() {
     if (!pendingSaveData || !user) return;
 
     setIsSaving(true);
-    // Sanitize data before saving (fix 'invalid nested entity')
     const safeData = sanitizeData(pendingSaveData);
 
     try {
@@ -309,15 +282,7 @@ function App() {
         loadInvitations(); 
     } catch (e: any) {
         console.error("Save Error:", e);
-        if (e.code === 'permission-denied') {
-             alert("🔴 LỖI: KHÔNG CÓ QUYỀN GHI DỮ LIỆU (Permission Denied)\n\nNguyên nhân: Bạn chưa dán đoạn code 'Luật Bảo Mật' vào Firebase Console.\n\nCách sửa: Hãy copy đoạn code tôi vừa gửi và dán vào Tab 'Rules' trên Firebase Console của bạn.");
-        } else if (e.message && (e.message.includes("API key") || e.code === "auth/api-key-not-valid-please-pass-a-valid-api-key")) {
-             alert("🔴 LỖI: API KEY KHÔNG HỢP LỆ\n\nNguyên nhân: Bạn chưa thay API Key của riêng bạn vào file code.\n\nCách sửa: Mở file 'services/firebase.ts' và dán API Key lấy từ Project Settings.");
-        } else if (e.code === 'auth/network-request-failed') {
-             alert("🔴 LỖI KẾT NỐI\n\nKiểm tra lại config Firebase, có thể bạn đang dùng ID dự án giả.");
-        } else {
-             alert("Lỗi khi lưu thiệp: " + e.message);
-        }
+        alert("Lỗi khi lưu thiệp: " + e.message);
     } finally {
         setIsSaving(false);
     }
@@ -333,14 +298,12 @@ function App() {
   };
   
   const handleViewAsGuest = (inv: SavedInvitation) => {
-      // Merge defaults when Admin views as guest too
       const mergedInv = { ...inv, data: mergeWithDefaults(inv.data) };
       setViewingInvitation(mergedInv);
       setView('guest-view');
   };
 
   const handleEditInvitation = (inv: SavedInvitation) => {
-      // Also merge for editing to avoid working with broken data
       setFormData(mergeWithDefaults(inv.data));
       setEditingId(inv.id);
       const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; 
@@ -434,7 +397,6 @@ function App() {
         </div>
       </div>
       
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -474,24 +436,17 @@ function App() {
     </nav>
   );
 
-  // Loading Screen for Guest View & Tool View
+  // Loading Screen: Returns empty div to satisfy "no loading screen" requirement
   if (isLoadingInvitation) {
-      return (
-          <div className="min-h-screen flex items-center justify-center bg-white">
-              <div className="text-center">
-                  <Heart className="w-14 h-14 text-rose-500 animate-pulse mx-auto" fill="currentColor" />
-              </div>
-          </div>
-      );
+      return <div className="min-h-screen bg-white"></div>;
   }
 
-  // --- TOOL GENERATOR VIEW (Dành cho Dâu Rể tự tạo link) ---
   if (view === 'tool-generator' && viewingInvitation) {
      return (
         <div className="min-h-screen bg-rose-50 flex items-center justify-center p-4">
              <LinkGeneratorModal 
                 isOpen={true}
-                onClose={() => setView('guest-view')} // Nút đóng sẽ chuyển sang xem thiệp
+                onClose={() => setView('guest-view')}
                 baseUrl={window.location.origin + window.location.pathname + '?invitationId=' + viewingInvitation.id}
                 isStandalone={true}
              />
@@ -502,12 +457,10 @@ function App() {
   return (
     <div className="min-h-screen bg-rose-50/50 font-sans text-slate-800 overflow-x-hidden selection:bg-rose-200">
       
-      {/* Only show Header if NOT in Guest View */}
       {view !== 'guest-view' && <Header />}
       
       {view !== 'guest-view' && <FloatingPetals />}
 
-      {/* SAVE PROJECT MODAL */}
       <AnimatePresence>
         {isSaveModalOpen && (
             <motion.div 
@@ -551,7 +504,6 @@ function App() {
         )}
       </AnimatePresence>
       
-      {/* GENERATE PERSONAL LINK MODAL (FOR ADMIN/EDITOR USE IN GUEST VIEW) */}
       <AnimatePresence>
           {isLinkGeneratorOpen && viewingInvitation && (
              <LinkGeneratorModal 
@@ -565,7 +517,6 @@ function App() {
       <main className={`${view !== 'guest-view' ? 'pt-16' : ''} min-h-screen relative`}>
         <AnimatePresence mode="wait">
           
-          {/* HOME VIEW */}
           {view === 'home' && (
             <motion.div 
               key="home"
@@ -602,7 +553,6 @@ function App() {
             </motion.div>
           )}
 
-          {/* TEMPLATES VIEW */}
           {view === 'templates' && (
             <motion.div
               key="templates"
@@ -644,7 +594,6 @@ function App() {
             </motion.div>
           )}
 
-          {/* PREVIEW VIEW */}
           {view === 'preview' && selectedTemplate && (
             <Preview 
                 key="preview"
@@ -652,12 +601,11 @@ function App() {
                 template={selectedTemplate} 
                 onBack={() => setView('templates')}
                 onSave={handleSaveRequest} 
-                onAutosave={handleAutosave} // Truyền hàm autosave xuống
+                onAutosave={handleAutosave}
                 readonly={!canEdit} 
             />
           )}
 
-          {/* GUEST MANAGER VIEW (PROTECTED) */}
           {view === 'guest-manager' && canEdit && (
               <motion.div
                 key="guest-manager"
@@ -675,7 +623,6 @@ function App() {
               </motion.div>
           )}
 
-          {/* ADMIN DASHBOARD VIEW (ADMIN ONLY) */}
           {view === 'admin-dashboard' && isAdmin && (
             <motion.div
                 key="admin-dashboard"
@@ -687,7 +634,6 @@ function App() {
             </motion.div>
           )}
           
-          {/* PRICING VIEW */}
           {view === 'pricing' && (
               <motion.div
                 key="pricing"
@@ -699,7 +645,6 @@ function App() {
               </motion.div>
           )}
           
-          {/* LOGIN VIEW */}
           {view === 'login' && (
              <motion.div
                 key="login"
@@ -728,10 +673,8 @@ function App() {
              </motion.div>
           )}
 
-          {/* GUEST VIEW - Hiển thị thiệp cho khách (Không có header/footer app) */}
           {view === 'guest-view' && viewingInvitation && (
                (() => {
-                   // Logic chọn component hiển thị dựa trên style
                    const tpl = TEMPLATES.find(t => t.style === viewingInvitation.data.style) || TEMPLATES[0];
                    
                    if (tpl.style === 'red-gold') {
@@ -740,7 +683,6 @@ function App() {
                         return <TemplatePersonalized data={viewingInvitation.data} readonly={true} invitationId={viewingInvitation.id} guestName={guestNameFromUrl} />
                    }
                    
-                   // Fallback cho các mẫu cũ
                    return <Preview 
                        key="guest-view-fallback"
                        data={viewingInvitation.data} 

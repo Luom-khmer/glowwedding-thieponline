@@ -3,11 +3,11 @@ import { db } from './firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { User, UserRole } from '../types';
 
-// Danh sách email được mặc định là Admin (Super Admin)
+// Danh sách email được mặc định là Admin (Super Admin) - Đã thêm email của bạn
 const SUPER_ADMINS = ['danhluom68g1@gmail.com'];
 
 export const userService = {
-  // Đồng bộ user khi đăng nhập: Nếu chưa có thì tạo mới, nếu có thì trả về role hiện tại
+  // Đồng bộ user khi đăng nhập
   syncUser: async (firebaseUser: any): Promise<User> => {
     const userRef = doc(db, 'users', firebaseUser.uid);
     const userSnap = await getDoc(userRef);
@@ -16,7 +16,7 @@ export const userService = {
     // Logic xác định role
     let role: UserRole = 'user';
 
-    // 1. Kiểm tra nếu là Super Admin -> Luôn luôn là Admin
+    // 1. Kiểm tra nếu là Super Admin -> Luôn luôn là Admin (Ghi đè quyền cũ nếu có)
     if (SUPER_ADMINS.includes(email)) {
         role = 'admin';
     } else if (userSnap.exists()) {
@@ -32,7 +32,6 @@ export const userService = {
         }
     }
 
-    // Cập nhật lại thông tin vào Firestore (để đảm bảo Super Admin luôn được update quyền nếu lỡ bị mất)
     const userDataToSave = {
         email: email,
         name: firebaseUser.displayName || 'User',
@@ -45,7 +44,7 @@ export const userService = {
         Object.assign(userDataToSave, { createdAt: new Date().toISOString() });
     }
 
-    // Dùng setDoc với merge: true để cập nhật hoặc tạo mới
+    // Dùng setDoc với merge: true để cập nhật thông tin và quyền mới nhất
     await setDoc(userRef, userDataToSave, { merge: true });
 
     return {

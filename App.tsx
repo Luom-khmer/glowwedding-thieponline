@@ -217,7 +217,7 @@ function App() {
         } else {
             // Create new
             await invitationService.createInvitation(saveNameInput, pendingSaveData, user.email);
-            alert("Đã lưu thiệp thành công!");
+            alert("Đã lưu thiệp thành công! Link chia sẻ đã sẵn sàng.");
         }
         
         setIsSaveModalOpen(false);
@@ -225,9 +225,17 @@ function App() {
         setPendingSaveData(null);
         setView('guest-manager');
         loadInvitations(); // Reload list
-    } catch (e) {
-        alert("Lỗi khi lưu thiệp. Vui lòng thử lại.");
-        console.error(e);
+    } catch (e: any) {
+        console.error("Save Error:", e);
+        
+        // CẢI THIỆN THÔNG BÁO LỖI
+        if (e.code === 'permission-denied') {
+             alert("🔴 LỖI: KHÔNG CÓ QUYỀN GHI DỮ LIỆU (Permission Denied)\n\nNguyên nhân: Bạn chưa dán đoạn code 'Luật Bảo Mật' vào Firebase Console.\n\nCách sửa: Hãy copy đoạn code tôi vừa gửi và dán vào Tab 'Rules' trên Firebase Console của bạn.");
+        } else if (e.message && (e.message.includes("API key") || e.code === "auth/api-key-not-valid-please-pass-a-valid-api-key")) {
+             alert("🔴 LỖI: API KEY KHÔNG HỢP LỆ\n\nNguyên nhân: Bạn chưa thay API Key của riêng bạn vào file code.\n\nCách sửa: Mở file 'services/firebase.ts' và dán API Key lấy từ Project Settings.");
+        } else {
+             alert("Lỗi khi lưu thiệp: " + e.message);
+        }
     } finally {
         setIsSaving(false);
     }

@@ -3,19 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// --- HƯỚNG DẪN CẤU HÌNH ---
-// 1. Vào console.firebase.google.com -> Project Settings -> General -> Your apps
-// 2. Copy config dán vào bên dưới
-// 3. Vào Build -> Firestore Database -> Rules: Cập nhật rules để cho phép đọc/ghi
-
+// --- CẤU HÌNH CỦA BẠN (Dán thông tin từ Bước 5 vào đây) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs",
-  authDomain: "glowwedding-e5f9b.firebaseapp.com",
-  projectId: "glowwedding-e5f9b",
-  storageBucket: "glowwedding-e5f9b.firebasestorage.app",
-  messagingSenderId: "574284120272",
-  appId: "1:574284120272:web:a344b3bb05d1cd5ab1ded5",
-  measurementId: "G-TCS6LG5RKL"
+  apiKey: "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY",
+  authDomain: "PROJECT_ID_CỦA_BẠN.firebaseapp.com",
+  projectId: "PROJECT_ID_CỦA_BẠN",
+  storageBucket: "PROJECT_ID_CỦA_BẠN.firebasestorage.app",
+  messagingSenderId: "SỐ_ID_CỦA_BẠN",
+  appId: "APP_ID_CỦA_BẠN"
 };
 
 // Khởi tạo Firebase

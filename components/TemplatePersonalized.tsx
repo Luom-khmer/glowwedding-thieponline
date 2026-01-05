@@ -15,6 +15,7 @@ interface TemplatePersonalizedProps {
   onSave?: (newData: InvitationData) => void;
   readonly?: boolean; // New prop for Guest View
   invitationId?: string; // ID của thiệp
+  guestName?: string; // Tên khách mời từ URL
 }
 
 interface EditingFieldState {
@@ -24,7 +25,7 @@ interface EditingFieldState {
     fontSize?: number;
 }
 
-export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data: initialData, onSave, readonly = false, invitationId }) => {
+export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data: initialData, onSave, readonly = false, invitationId, guestName }) => {
   const [localData, setLocalData] = useState<InvitationData>(initialData);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,7 +39,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // --- RSVP STATE ---
-  const [guestName, setGuestName] = useState('');
+  const [guestNameInput, setGuestNameInput] = useState(guestName || '');
   const [guestRelation, setGuestRelation] = useState(''); 
   const [guestWishes, setGuestWishes] = useState('');
   const [attendance, setAttendance] = useState('Có Thể Tham Dự');
@@ -213,7 +214,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
   };
 
   const handleRSVPSubmit = async () => {
-      if (!guestName.trim()) {
+      if (!guestNameInput.trim()) {
           alert("Bạn quên nhập tên rồi nè!");
           return;
       }
@@ -224,7 +225,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
           if (invitationId) {
               await addDoc(collection(db, "rsvps"), {
                   invitationId: invitationId,
-                  guestName,
+                  guestName: guestNameInput,
                   guestRelation,
                   guestWishes,
                   attendance,
@@ -232,7 +233,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
               });
           } else {
               // Demo mode logic
-              console.log("Demo Saved:", { guestName, guestRelation, guestWishes, attendance });
+              console.log("Demo Saved:", { guestName: guestNameInput, guestRelation, guestWishes, attendance });
               await new Promise(resolve => setTimeout(resolve, 500));
           }
 
@@ -246,7 +247,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    guestName,
+                    guestName: guestNameInput,
                     guestRelation,
                     guestWishes,
                     attendance,
@@ -257,7 +258,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
 
           setShowSuccessModal(true);
           // Reset form
-          setGuestName('');
+          setGuestNameInput('');
           setGuestWishes('');
           setGuestRelation('');
       } catch (error) {
@@ -535,8 +536,9 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
             </motion.div>
 
             <motion.div variants={fadeInUp} className="abs w-full text-center" style={{top:'731.8px', left:'60px', width:'300px', height:'48px', zIndex: 10}}>
+                 {/* HIỂN THỊ TÊN KHÁCH MỜI TỪ URL */}
                  <h2 style={{fontFamily:'AlexBrush-Regular, sans-serif', fontSize:'32px', color:'#7d1f2a'}}>
-                    {readonly ? "Khách Quý" : (isEditMode ? "[Tên Khách Mời]" : "Khách Quý")}
+                    {guestName ? guestName : (readonly ? "Khách Quý" : (isEditMode ? "[Tên Khách Mời]" : "Khách Quý"))}
                  </h2>
             </motion.div>
             <motion.div variants={zoomIn} className="abs" style={{top:'755.8px', left:'92px', width:'236px', borderBottom: '1px dotted #000'}}></motion.div>
@@ -733,8 +735,8 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                     <input 
                         className="inp-style" 
                         placeholder="Tên của bạn là?" 
-                        value={guestName}
-                        onChange={(e) => setGuestName(e.target.value)}
+                        value={guestNameInput}
+                        onChange={(e) => setGuestNameInput(e.target.value)}
                     />
                 </div>
                 <div style={{height: '43px', marginBottom: '14px'}}>

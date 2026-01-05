@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Menu, X, ArrowRight, User as UserIcon, LogOut, FolderHeart, Save, Heart, ShieldCheck, Lock, Shield } from 'lucide-react';
+import { Camera, Menu, X, ArrowRight, User as UserIcon, LogOut, FolderHeart, Save, Heart, ShieldCheck, Lock, Shield, Loader2, Link as LinkIcon } from 'lucide-react';
 import { Template, ViewState, TEMPLATES, InvitationData, User, SavedInvitation } from './types';
 import { Button } from './components/Button';
 import { Preview } from './components/Preview';
@@ -10,8 +10,10 @@ import { FloatingPetals } from './components/FloatingPetals';
 import { GuestManager } from './components/GuestManager';
 import { TemplateRedGold } from './components/TemplateRedGold';
 import { TemplatePersonalized } from './components/TemplatePersonalized';
-import { AdminDashboard } from './components/AdminDashboard'; // Import Admin Dashboard
-import { userService } from './services/userService'; // Import User Service
+import { AdminDashboard } from './components/AdminDashboard';
+import { LinkGeneratorModal } from './components/LinkGeneratorModal'; // Import Modal mới
+import { userService } from './services/userService';
+import { invitationService } from './services/invitationService';
 
 // Firebase Imports
 import { auth, googleProvider } from './services/firebase';
@@ -69,25 +71,73 @@ function App() {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveNameInput, setSaveNameInput] = useState("");
   const [pendingSaveData, setPendingSaveData] = useState<InvitationData | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // State for Editing
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // State for Guest View
   const [viewingInvitation, setViewingInvitation] = useState<SavedInvitation | null>(null);
+  const [isLoadingInvitation, setIsLoadingInvitation] = useState(false);
+  
+  // State for Personalized Link Generation
+  const [guestNameFromUrl, setGuestNameFromUrl] = useState<string>('');
+  const [isLinkGeneratorOpen, setIsLinkGeneratorOpen] = useState(false);
 
   // Role Helpers
-  // canEdit: Có quyền chỉnh sửa không? (Admin hoặc Editor)
   const canEdit = user ? (user.role === 'admin' || user.role === 'editor') : false;
-  // isAdmin: Có quyền quản trị hệ thống không?
   const isAdmin = user ? user.role === 'admin' : false;
 
+  // --- EFFECT: LOAD INVITATION FROM URL (FOR GUESTS) ---
+  useEffect(() => {
+      const checkUrlForInvitation = async () => {
+          const searchParams = new URLSearchParams(window.location.search);
+          const invitationId = searchParams.get('invitationId');
+          const guestName = searchParams.get('guestName'); // Lấy tên khách từ URL
+
+          if (guestName) {
+              setGuestNameFromUrl(guestName);
+          }
+
+          if (invitationId) {
+              setIsLoadingInvitation(true);
+              const inv = await invitationService.getInvitationById(invitationId);
+              if (inv) {
+                  setViewingInvitation(inv);
+                  setView('guest-view');
+              } else {
+                  alert("Không tìm thấy thiệp mời này hoặc đã bị xóa!");
+                  window.history.pushState({}, '', '/'); // Reset URL
+                  setView('home');
+              }
+              setIsLoadingInvitation(false);
+          }
+      };
+
+      checkUrlForInvitation();
+  }, []);
+
+  // --- EFFECT: LOAD SAVED INVITATIONS (FOR ADMIN) ---
+  useEffect(() => {
+      if (canEdit && view === 'guest-manager') {
+          loadInvitations();
+      }
+  }, [canEdit, view]);
+
+  const loadInvitations = async () => {
+      const list = await invitationService.getAllInvitations();
+      setSavedInvitations(list);
+  }
+
   // Handlers
-  const handleStart = () => {
-      // Cho phép mọi người vào xem mẫu (Templates)
-      setView('templates');
-  };
+  const handleStart = () => setView('templates');
   
   const handleSelectTemplate = (t: Template) => {
-    // Bỏ chặn User thường, cho phép vào Preview ở chế độ readonly
     setSelectedTemplate(t);
+    // Nếu đang không edit (tạo mới), reset form về mặc định
+    if (!editingId) {
+       setFormData(initialData);
+    }
     setView('preview');
   };
 
@@ -105,15 +155,14 @@ function App() {
   const handleFirebaseLogin = async () => {
     // @ts-ignore
     const currentApiKey = auth.app.options.apiKey;
-    if (!currentApiKey || currentApiKey === "AIzaSyD-YOUR_API_KEY_HERE") {
-        alert("⚠️ BẠN CHƯA CẤU HÌNH FIREBASE!");
-        return;
+    if (!currentApiKey || currentApiKey === "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs") {
+        // Chỉ hiện cảnh báo nếu là API Key mặc định trong code mẫu, 
+        // ở đây chúng ta đã có config thật trong file services/firebase.ts nên dòng này để safe guard thôi
     }
 
     setIsLoadingAuth(true);
     try {
         const result = await signInWithPopup(auth, googleProvider);
-        // Sau khi login Firebase, đồng bộ user vào Firestore để lấy Role mới nhất
         const syncedUser = await userService.syncUser(result.user);
         setUser(syncedUser);
         setView('home');
@@ -134,34 +183,63 @@ function App() {
         alert("Bạn không có quyền lưu thiệp này.");
         return;
     }
-    setPendingSaveData(newData);
-    setSaveNameInput(""); 
+
+    // Inject current style into data if available
+    const dataToSave = { ...newData };
+    if (selectedTemplate) {
+        dataToSave.style = selectedTemplate.style;
+    }
+
+    setPendingSaveData(dataToSave);
+    // Nếu đang edit, điền sẵn tên khách
+    if (editingId) {
+        const existingInv = savedInvitations.find(i => i.id === editingId);
+        if (existingInv) setSaveNameInput(existingInv.customerName);
+    } else {
+        setSaveNameInput("");
+    }
     setIsSaveModalOpen(true); 
   };
 
-  const confirmSaveGuest = () => {
+  const confirmSaveGuest = async () => {
     if (!saveNameInput.trim()) {
         alert("Vui lòng nhập tên khách hàng hoặc tên dự án!");
         return;
     }
-    if (!pendingSaveData) return;
+    if (!pendingSaveData || !user) return;
 
-    const uniqueId = Math.random().toString(36).substr(2, 9);
-    const newInvitation: SavedInvitation = {
-        id: uniqueId,
-        customerName: saveNameInput, 
-        createdAt: new Date().toLocaleDateString('vi-VN'),
-        data: pendingSaveData,
-        link: `${window.location.origin}?invitation=${uniqueId}#invite`
-    };
-
-    setSavedInvitations(prev => [newInvitation, ...prev]);
-    setIsSaveModalOpen(false);
-    setView('guest-manager'); 
+    setIsSaving(true);
+    try {
+        if (editingId) {
+            // Update existing
+            await invitationService.updateInvitation(editingId, saveNameInput, pendingSaveData);
+            alert("Cập nhật thành công!");
+        } else {
+            // Create new
+            await invitationService.createInvitation(saveNameInput, pendingSaveData, user.email);
+            alert("Đã lưu thiệp thành công!");
+        }
+        
+        setIsSaveModalOpen(false);
+        setEditingId(null);
+        setPendingSaveData(null);
+        setView('guest-manager');
+        loadInvitations(); // Reload list
+    } catch (e) {
+        alert("Lỗi khi lưu thiệp. Vui lòng thử lại.");
+        console.error(e);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
-  const handleDeleteInvitation = (id: string) => {
-      setSavedInvitations(prev => prev.filter(inv => inv.id !== id));
+  const handleDeleteInvitation = async (id: string) => {
+      try {
+        await invitationService.deleteInvitation(id);
+        setSavedInvitations(prev => prev.filter(inv => inv.id !== id));
+      } catch (e) {
+          alert("Lỗi xóa thiệp.");
+      }
   };
   
   const handleViewAsGuest = (inv: SavedInvitation) => {
@@ -169,17 +247,26 @@ function App() {
       setView('guest-view');
   };
 
+  const handleEditInvitation = (inv: SavedInvitation) => {
+      setFormData(inv.data);
+      setEditingId(inv.id);
+      
+      // Tìm template tương ứng để load vào Preview
+      const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; // Fallback
+      setSelectedTemplate(temp);
+      
+      setView('preview');
+  };
+
   // Firebase Auth Observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
         if (currentUser) {
-            // Khi reload trang, fetch lại role từ DB để đảm bảo đúng quyền
             try {
                 const syncedUser = await userService.syncUser(currentUser);
                 setUser(syncedUser);
             } catch (e) {
                 console.error("Error syncing user on reload", e);
-                // Fallback nếu lỗi mạng, mặc định là user để an toàn
                 setUser({
                     uid: currentUser.uid,
                     name: currentUser.displayName || 'User',
@@ -213,10 +300,8 @@ function App() {
           </div>
           
           <div className="hidden md:flex space-x-8 items-center">
-            {/* Menu Mẫu Thiệp hiện cho tất cả mọi người */}
-            <button onClick={() => setView('templates')} className="text-gray-600 hover:text-rose-500 transition font-medium">Mẫu Thiệp</button>
+            <button onClick={() => { setEditingId(null); setView('templates'); }} className="text-gray-600 hover:text-rose-500 transition font-medium">Mẫu Thiệp</button>
 
-            {/* Menu chỉ hiện cho Admin/Editor */}
             {canEdit && (
                 <>
                     <button onClick={() => setView('guest-manager')} className="text-gray-600 hover:text-rose-500 transition flex items-center gap-1 font-medium">
@@ -225,7 +310,6 @@ function App() {
                 </>
             )}
             
-            {/* Menu Admin chỉ hiện cho Admin */}
             {isAdmin && (
                 <button onClick={() => setView('admin-dashboard')} className="text-purple-600 hover:text-purple-800 transition flex items-center gap-1 font-bold bg-purple-50 px-3 py-1 rounded-full">
                     <Shield className="w-4 h-4" /> Admin
@@ -275,7 +359,7 @@ function App() {
                  <div className="py-3 px-4 text-rose-600 font-medium border-b border-gray-50 mb-2">Xin chào, {user.name} ({user.role})</div>
               )}
               
-              <button onClick={() => { setView('templates'); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-4 rounded-lg hover:bg-rose-50 text-gray-700 font-medium">Mẫu Thiệp</button>
+              <button onClick={() => { setEditingId(null); setView('templates'); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-4 rounded-lg hover:bg-rose-50 text-gray-700 font-medium">Mẫu Thiệp</button>
 
               {canEdit && (
                 <>
@@ -300,6 +384,18 @@ function App() {
       </AnimatePresence>
     </nav>
   );
+
+  // Loading Screen for Guest View
+  if (isLoadingInvitation) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-rose-50">
+              <div className="text-center">
+                  <Loader2 className="w-10 h-10 text-rose-500 animate-spin mx-auto mb-4" />
+                  <p className="text-gray-600 font-medium">Đang tải thiệp mời...</p>
+              </div>
+          </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-rose-50/50 font-sans text-slate-800 overflow-x-hidden selection:bg-rose-200">
@@ -327,8 +423,10 @@ function App() {
                         <div className="bg-rose-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Save className="text-rose-600 w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">Lưu Mẫu Thiệp</h3>
-                        <p className="text-sm text-gray-500 mt-1">Lưu lại mẫu thiết kế này cho khách hàng để lấy link chia sẻ.</p>
+                        <h3 className="text-xl font-bold text-gray-900">{editingId ? "Cập Nhật Thiệp" : "Lưu Mẫu Thiệp"}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {editingId ? "Lưu lại các thay đổi của bạn." : "Lưu lại mẫu thiết kế này để lấy link chia sẻ."}
+                        </p>
                     </div>
                     
                     <div className="mb-6">
@@ -343,12 +441,23 @@ function App() {
                         />
                     </div>
 
-                    <Button className="w-full" onClick={confirmSaveGuest}>
-                        Lưu & Tạo Link
+                    <Button className="w-full" onClick={confirmSaveGuest} isLoading={isSaving}>
+                        {editingId ? "Cập nhật" : "Lưu & Tạo Link"}
                     </Button>
                 </motion.div>
             </motion.div>
         )}
+      </AnimatePresence>
+      
+      {/* GENERATE PERSONAL LINK MODAL */}
+      <AnimatePresence>
+          {isLinkGeneratorOpen && viewingInvitation && (
+             <LinkGeneratorModal 
+                isOpen={isLinkGeneratorOpen}
+                onClose={() => setIsLinkGeneratorOpen(false)}
+                baseUrl={window.location.origin + window.location.pathname + '?invitationId=' + viewingInvitation.id}
+             />
+          )}
       </AnimatePresence>
 
       <main className={`${view !== 'guest-view' ? 'pt-16' : ''} min-h-screen relative`}>
@@ -378,7 +487,7 @@ function App() {
                 <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
                   Tạo thiệp cưới đẹp lung linh chỉ trong vài phút. 
                   {canEdit 
-                    ? " Bắt đầu thiết kế ngay với quyền Editor của bạn."
+                    ? " Quản lý danh sách khách hàng và thiết kế chuyên nghiệp."
                     : " Xem các mẫu thiệp mới nhất ngay hôm nay."
                   }
                 </p>
@@ -386,8 +495,6 @@ function App() {
                   <Button onClick={handleStart} className="text-lg px-8 py-4 shadow-xl shadow-rose-200/50">
                     {canEdit ? "Tạo Thiệp Ngay" : "Xem Mẫu Ngay"} <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
-                  
-                  {/* Nút Xem Mẫu Demo đã được tích hợp vào nút chính đối với khách */}
                 </div>
               </motion.div>
             </motion.div>
@@ -415,14 +522,12 @@ function App() {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer group border border-gray-100 relative"
                     onClick={() => handleSelectTemplate(t)}
                   >
-                    {/* Bỏ lớp phủ khóa (Lock overlay) để cho phép khách xem */}
-                    
                     <div className="relative aspect-[2/3] overflow-hidden">
                       <img src={t.thumbnailUrl} alt={t.name} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
                       
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
                             <span className="bg-white text-rose-600 px-6 py-2 rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition">
-                                {canEdit ? "Chọn mẫu này" : "Xem chi tiết"}
+                                {canEdit ? (editingId ? "Đổi sang mẫu này" : "Chọn mẫu này") : "Xem chi tiết"}
                             </span>
                         </div>
                       
@@ -438,7 +543,6 @@ function App() {
           )}
 
           {/* PREVIEW VIEW */}
-          {/* QUAN TRỌNG: Truyền tham số readonly={!canEdit} để khóa sửa nếu không có quyền */}
           {view === 'preview' && selectedTemplate && (
             <Preview 
                 key="preview"
@@ -461,8 +565,9 @@ function App() {
                   <GuestManager 
                     invitations={savedInvitations} 
                     onDelete={handleDeleteInvitation}
-                    onCreateNew={() => setView('templates')}
+                    onCreateNew={() => { setEditingId(null); setView('templates'); }}
                     onView={handleViewAsGuest}
+                    onEdit={handleEditInvitation}
                   />
               </motion.div>
           )}
@@ -487,12 +592,25 @@ function App() {
                 animate={{ opacity: 1 }}
                 className="w-full h-screen bg-black flex items-center justify-center relative"
              >
+                {/* Chỉ hiển thị nút đóng nếu là Editor đang xem thử, khách thật sẽ không thấy nút này */}
+                {canEdit && !window.location.search.includes('invitationId') && (
+                    <button 
+                        onClick={() => setView('guest-manager')}
+                        className="fixed top-4 left-4 z-[9999] bg-white/20 hover:bg-white/40 text-white rounded-full p-2 backdrop-blur-md transition-all"
+                        title="Đóng chế độ khách xem"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                )}
+                
+                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (Cho khách hoặc chủ tiệc) */}
                 <button 
-                    onClick={() => setView('guest-manager')}
-                    className="fixed top-4 left-4 z-[9999] bg-white/20 hover:bg-white/40 text-white rounded-full p-2 backdrop-blur-md transition-all"
-                    title="Đóng chế độ khách xem"
+                    onClick={() => setIsLinkGeneratorOpen(true)}
+                    className="fixed bottom-20 left-4 z-[9999] bg-[#7d1f2a]/90 hover:bg-[#7d1f2a] text-white rounded-full p-3 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pr-4 border border-rose-300"
+                    title="Tạo link mời riêng"
                 >
-                    <X className="w-6 h-6" />
+                    <LinkIcon className="w-5 h-5 animate-pulse" />
+                    <span className="text-xs font-bold uppercase">Tạo Link Mời</span>
                 </button>
 
                 <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-hidden">
@@ -501,12 +619,14 @@ function App() {
                             data={viewingInvitation.data} 
                             readonly={true} 
                             invitationId={viewingInvitation.id}
+                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
                         />
                      ) : (
                         <TemplatePersonalized 
                             data={viewingInvitation.data} 
                             readonly={true} 
                             invitationId={viewingInvitation.id}
+                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
                         />
                      )}
                 </div>

@@ -15,6 +15,7 @@ interface TemplateRedGoldProps {
   onSave?: (newData: InvitationData) => void;
   readonly?: boolean;
   invitationId?: string; // ID của thiệp để lưu RSVP đúng chỗ
+  guestName?: string; // Tên khách mời từ URL
 }
 
 interface EditingFieldState {
@@ -24,7 +25,7 @@ interface EditingFieldState {
     fontSize?: number;
 }
 
-export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialData, onSave, readonly = false, invitationId }) => {
+export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialData, onSave, readonly = false, invitationId, guestName }) => {
   const [localData, setLocalData] = useState<InvitationData>(initialData);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -40,7 +41,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   const [editingField, setEditingField] = useState<EditingFieldState | null>(null);
 
   // --- RSVP STATE ---
-  const [guestName, setGuestName] = useState('');
+  const [guestNameInput, setGuestNameInput] = useState(guestName || ''); // Auto-fill nếu có tên từ URL
   const [guestRelation, setGuestRelation] = useState(''); // Bạn là gì của Dâu Rể
   const [guestWishes, setGuestWishes] = useState('');
   const [attendance, setAttendance] = useState('Có Thể Tham Dự');
@@ -117,7 +118,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   // --- HANDLERS ---
   
   const handleRSVPSubmit = async () => {
-      if (!guestName.trim()) {
+      if (!guestNameInput.trim()) {
           alert("Bạn quên nhập tên rồi nè!");
           return;
       }
@@ -128,7 +129,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
           if (invitationId) {
               await addDoc(collection(db, "rsvps"), {
                   invitationId: invitationId,
-                  guestName,
+                  guestName: guestNameInput,
                   guestRelation,
                   guestWishes,
                   attendance,
@@ -136,7 +137,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
               });
           } else {
               // Demo mode
-              console.log("Demo Saved:", { guestName, guestRelation, guestWishes, attendance });
+              console.log("Demo Saved:", { guestName: guestNameInput, guestRelation, guestWishes, attendance });
               await new Promise(resolve => setTimeout(resolve, 500));
           }
 
@@ -151,7 +152,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    guestName,
+                    guestName: guestNameInput,
                     guestRelation,
                     guestWishes,
                     attendance,
@@ -161,7 +162,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
           }
 
           setShowSuccessModal(true);
-          setGuestName('');
+          setGuestNameInput('');
           setGuestWishes('');
           setGuestRelation('');
       } catch (error) {
@@ -841,7 +842,10 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                         <CinematicImage src={localData.imageUrl} enableKenBurns={true} />
                     </EditableWrapper>
                     <motion.div variants={fadeInUp} className="abs w-full text-center" style={{top: '731px'}}>
-                        <h2 className="font-alex text-[32px] text-[#7d1f2a]">Khách quý</h2>
+                        {/* HIỂN THỊ TÊN KHÁCH MỜI TỪ URL */}
+                        <h2 className="font-alex text-[32px] text-[#7d1f2a]">
+                            {guestName ? guestName : "Khách quý"}
+                        </h2>
                     </motion.div>
                 </div>
             </div>
@@ -887,8 +891,8 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                             <input 
                                 className="inp-style" 
                                 placeholder="Tên của bạn là?" 
-                                value={guestName}
-                                onChange={(e) => setGuestName(e.target.value)}
+                                value={guestNameInput}
+                                onChange={(e) => setGuestNameInput(e.target.value)}
                             />
                         </div>
                         <div style={{height: '43px', marginBottom: '14px'}}>

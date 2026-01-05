@@ -1,4 +1,5 @@
 
+
 export interface Template {
   id: string;
   name: string;
@@ -49,6 +50,9 @@ export interface InvitationData {
 
   // Cấu hình style riêng cho từng element (VD: Font size)
   elementStyles?: Record<string, { fontSize?: number }>;
+
+  // Template Style
+  style?: 'modern' | 'classic' | 'floral' | 'luxury' | 'red-gold' | 'personalized';
 }
 
 export interface SavedInvitation {

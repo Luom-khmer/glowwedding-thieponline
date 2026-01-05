@@ -58,6 +58,32 @@ const initialData: InvitationData = {
   elementStyles: {}
 };
 
+// Helper để merge dữ liệu thiếu với dữ liệu mặc định
+const mergeWithDefaults = (data: InvitationData): InvitationData => {
+    return {
+        ...initialData,
+        ...data,
+        // Merge styles cẩn thận
+        elementStyles: { ...initialData.elementStyles, ...(data.elementStyles || {}) },
+        // Đảm bảo mảng ảnh không bị rỗng
+        albumImages: (data.albumImages && data.albumImages.length > 0) ? data.albumImages : initialData.albumImages,
+        galleryImages: (data.galleryImages && data.galleryImages.length > 0) ? data.galleryImages : initialData.galleryImages,
+        // Fallback các trường quan trọng nếu bị null/rỗng
+        groomName: data.groomName || initialData.groomName,
+        brideName: data.brideName || initialData.brideName,
+        date: data.date || initialData.date,
+        time: data.time || initialData.time,
+        location: data.location || initialData.location,
+        address: data.address || initialData.address,
+        imageUrl: data.imageUrl || initialData.imageUrl,
+        centerImage: data.centerImage || initialData.centerImage,
+        footerImage: data.footerImage || initialData.footerImage,
+        bankInfo: data.bankInfo || initialData.bankInfo,
+        qrCodeUrl: data.qrCodeUrl || initialData.qrCodeUrl,
+        musicUrl: data.musicUrl || initialData.musicUrl
+    };
+};
+
 function App() {
   const [view, setView] = useState<ViewState>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -105,6 +131,10 @@ function App() {
               const inv = await invitationService.getInvitationById(invitationId);
               
               if (inv) {
+                  // CRITICAL FIX: Merge dữ liệu tải về với dữ liệu mặc định
+                  // để tránh mất chữ/ảnh nếu DB lưu thiếu field
+                  inv.data = mergeWithDefaults(inv.data);
+
                   setViewingInvitation(inv);
                   
                   // Nếu mode là 'tool' -> Chuyển sang giao diện tool cho dâu rể dùng
@@ -273,12 +303,15 @@ function App() {
   };
   
   const handleViewAsGuest = (inv: SavedInvitation) => {
-      setViewingInvitation(inv);
+      // Merge defaults when Admin views as guest too
+      const mergedInv = { ...inv, data: mergeWithDefaults(inv.data) };
+      setViewingInvitation(mergedInv);
       setView('guest-view');
   };
 
   const handleEditInvitation = (inv: SavedInvitation) => {
-      setFormData(inv.data);
+      // Also merge for editing to avoid working with broken data
+      setFormData(mergeWithDefaults(inv.data));
       setEditingId(inv.id);
       const temp = TEMPLATES.find(t => t.style === inv.data.style) || TEMPLATES[0]; 
       setSelectedTemplate(temp);

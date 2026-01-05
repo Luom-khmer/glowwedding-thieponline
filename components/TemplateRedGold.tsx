@@ -472,7 +472,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   for(let i=0; i<startOffset; i++) calendarDays.push(null);
   for(let i=1; i<=daysInMonth; i++) calendarDays.push(i);
 
-  const getAlbumImg = (idx: number) => localData.albumImages?.[idx] || '';
+  const getAlbumImg = (idx: number) => localData.albumImages?.[idx] || 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop';
   const getGalleryImg = (idx: number) => localData.galleryImages?.[idx] || 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop';
 
   const css = `
@@ -867,14 +867,17 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                     {/* ... Header Content ... */}
                     <motion.div variants={zoomIn} className="abs w-full text-center" style={{top: '80px', zIndex: 20}}>
                         <EditableWrapper field="groomName" label="Tên Hiển Thị" defaultFontSize={30} className="font-sloop text-[30px] text-shadow-white inline-block px-2 leading-tight">
-                            {localData.groomName} & {localData.brideName}
+                            {localData.groomName || 'Anh Tú'} & {localData.brideName || 'Diệu Nhi'}
                         </EditableWrapper>
                     </motion.div>
                     <motion.div variants={fadeInDown} className="abs" style={{top: '41px', left: '83px', width: '254px'}}>
                         <h2 className="text-center font-roboto text-[20px] tracking-[3px]">THIỆP MỜI</h2>
                     </motion.div>
                     <EditableWrapper field="mainImage" isText={false} className="abs shadow-xl" style={{top: '286px', left: '85px', width: '249px', height: '373px', border: '7px solid #8e0101', zIndex: 20}}>
-                        <CinematicImage src={localData.imageUrl} enableKenBurns={true} />
+                        <CinematicImage 
+                            src={localData.imageUrl || 'https://statics.pancake.vn/web-media/ab/56/c3/d2/ae46af903d624877e4e71b00dc5ab4badaa10a8956d3c389ccbc73e9-w:1080-h:1620-l:151635-t:image/jpeg.jpeg'} 
+                            enableKenBurns={true} 
+                        />
                     </EditableWrapper>
                     <motion.div variants={fadeInUp} className="abs w-full text-center" style={{top: '731px'}}>
                         {/* HIỂN THỊ TÊN KHÁCH MỜI TỪ URL */}
@@ -889,13 +892,16 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                 <div className="section-bg pointer-events-none" style={{ backgroundImage: 'url("https://content.pancake.vn/1/s840x1600/fwebp/fd/42/7d/0c/1ca1e8525f99e3105eb930cd8ed684a64b07a0d9df7e0c725ca9779c-w:1260-h:2400-l:65030-t:image/png.png")' }}></div>
                 <div className="content-layer relative z-10 w-full h-full">
                     <motion.div variants={zoomIn} className="abs w-full text-center" style={{top: '273px', zIndex: 20}}>
-                        <EditableWrapper field="groomName" label="Tên Chú Rể" defaultFontSize={40} className="font-sloop text-[40px] text-shadow-white inline-block">{localData.groomName}</EditableWrapper>
+                        <EditableWrapper field="groomName" label="Tên Chú Rể" defaultFontSize={40} className="font-sloop text-[40px] text-shadow-white inline-block">{localData.groomName || 'Anh Tú'}</EditableWrapper>
                     </motion.div>
                     <motion.div variants={zoomIn} className="abs w-full text-center" style={{top: '355px', zIndex: 20}}>
-                        <EditableWrapper field="brideName" label="Tên Cô Dâu" defaultFontSize={40} className="font-sloop text-[40px] text-shadow-white inline-block">{localData.brideName}</EditableWrapper>
+                        <EditableWrapper field="brideName" label="Tên Cô Dâu" defaultFontSize={40} className="font-sloop text-[40px] text-shadow-white inline-block">{localData.brideName || 'Diệu Nhi'}</EditableWrapper>
                     </motion.div>
                     <EditableWrapper field="centerImage" isText={false} className="abs shadow-xl" style={{top: '424px', left: '33px', width: '354px', height: '269px', border: '7px solid #8e0101', zIndex: 20}} variants={smoothGallery}>
-                        <CinematicImage src={localData.centerImage} enableKenBurns={true} />
+                        <CinematicImage 
+                            src={localData.centerImage || 'https://statics.pancake.vn/web-media/e2/8c/c5/37/905dccbcd5bc1c1b602c10c95acb9986765f735e075bff1097e7f457-w:736-h:981-l:47868-t:image/jpeg.jfif'} 
+                            enableKenBurns={true} 
+                        />
                     </EditableWrapper>
                 </div>
             </motion.div>
@@ -1005,7 +1011,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="rel w-full h-[630px]">
                  <div className="abs w-full h-full bg-cover pointer-events-none" style={{backgroundImage: 'url("https://content.pancake.vn/web-media/ad/c0/11/16/06080e040619cef49e87d7e06a574eb61310d3dc4bdc9f0fec3638c9-w:854-h:1280-l:259362-t:image/jpeg.png")'}}></div>
                  <EditableWrapper field="footerImage" isText={false} className="abs animate-pulse-custom" style={{top: '338px', left: '11px', width: '397px', height: '155px', filter: 'grayscale(100%) brightness(200%)', zIndex: 20}}>
-                     <CinematicImage src={localData.footerImage} />
+                     <CinematicImage src={localData.footerImage || 'https://statics.pancake.vn/web-media/ad/c0/11/16/06080e040619cef49e87d7e06a574eb61310d3dc4bdc9f0fec3638c9-w:854-h:1280-l:259362-t:image/jpeg.png'} />
                  </EditableWrapper>
                  <motion.div variants={fadeInUp} className="abs w-full text-center" style={{top: '427px', zIndex: 30}}>
                      <p className="font-azkia text-[38px] text-white" style={{textShadow: '0 0 5px rgba(0,0,0,0.5)'}}>Rất hân hạnh được đón tiếp!</p>
@@ -1031,7 +1037,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                             <h2 className="font-ephesis text-[40px] font-bold">Gửi Mừng Cưới</h2>
                         </div>
                         <EditableWrapper field="qrCode" isText={false} className="abs" style={{top: '102px', left: '101px', width: '200px', height: '198px', zIndex: 20}}>
-                             <div className="w-full h-full bg-cover" style={{backgroundImage: `url("${localData.qrCodeUrl || 'https://img.freepik.com/free-vector/scan-me-qr-code_78370-2915.jpg'}")`}}></div>
+                             <div className="w-full h-full bg-cover" style={{backgroundImage: `url("${localData.qrCodeUrl || 'https://statics.pancake.vn/web-media/e2/bc/35/38/dc2d9ddf74d997785eb0c802bd3237a50de1118e505f1e0a89ae4ec1-w:592-h:1280-l:497233-t:image/png.png'}")`}}></div>
                         </EditableWrapper>
                         <div className="abs w-full text-center" style={{top: '323px', zIndex: 20}}>
                             <EditableWrapper field="bankInfo" label="Thông Tin Ngân Hàng" className="font-arial text-[17px] font-bold inline-block bg-white/80 px-2 rounded">
@@ -1057,7 +1063,7 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                     >
                         <div className="relative aspect-[3/4] w-full">
                              <img 
-                                src={localData.imageUrl || 'https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=1080&auto=format&fit=crop'} 
+                                src={localData.imageUrl || 'https://statics.pancake.vn/web-media/ab/56/c3/d2/ae46af903d624877e4e71b00dc5ab4badaa10a8956d3c389ccbc73e9-w:1080-h:1620-l:151635-t:image/jpeg.jpeg'} 
                                 className="w-full h-full object-cover" 
                                 alt="Thank you"
                              />

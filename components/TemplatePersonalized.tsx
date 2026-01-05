@@ -530,7 +530,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
         >
             <motion.div variants={zoomIn} className="abs" style={{top:'80px', left:'3.5px', width:'413px', height:'60px', zIndex: 10}}>
                 <EditableWrapper field="groomName" label="Tên Dâu Rể" defaultFontSize={40} className="w-full text-center">
-                    <h1 style={{fontFamily: 'UTM-Sloop, sans-serif', textShadow: '0px 4px 4px #fff', fontSize:'40px'}}>{localData.groomName} - {localData.brideName}</h1>
+                    <h1 style={{fontFamily: 'UTM-Sloop, sans-serif', textShadow: '0px 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'} - {localData.brideName || 'Diệu Nhi'}</h1>
                 </EditableWrapper>
             </motion.div>
 
@@ -589,17 +589,21 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
              </motion.div>
 
              <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'273.5px', left:'3.5px', width:'413px'}}>
-                 <EditableWrapper field="groomName" label="Chú Rể" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.groomName}</h1></EditableWrapper>
+                 <EditableWrapper field="groomName" label="Chú Rể" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'}</h1></EditableWrapper>
              </motion.div>
              <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'316px', left:'141.5px', width:'137px'}}>
                  <h1 style={{fontFamily:'UTM-Azkia, sans-serif', fontSize:'40px', textAlign:'center'}}>&</h1>
              </motion.div>
              <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'355px', left:'3.5px', width:'413px'}}>
-                <EditableWrapper field="brideName" label="Cô Dâu" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.brideName}</h1></EditableWrapper>
+                <EditableWrapper field="brideName" label="Cô Dâu" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.brideName || 'Diệu Nhi'}</h1></EditableWrapper>
              </motion.div>
 
              <EditableWrapper field="centerImage" isText={false} aspect={354/269} className="abs" style={{top:'424.3px', left:'33px', width:'354px', height:'269px', border:'7px solid #8e0101'}}>
-                <CinematicImage src={localData.centerImage || 'https://statics.pancake.vn/web-media/e2/8c/c5/37/905dccbcd5bc1c1b602c10c95acb9986765f735e075bff1097e7f457-w:736-h:981-l:47868-t:image/jpeg.jfif'} enableKenBurns={true} variants={slideInUp} />
+                <CinematicImage 
+                    src={localData.centerImage || 'https://statics.pancake.vn/web-media/e2/8c/c5/37/905dccbcd5bc1c1b602c10c95acb9986765f735e075bff1097e7f457-w:736-h:981-l:47868-t:image/jpeg.jfif'} 
+                    enableKenBurns={true} 
+                    variants={slideInUp} 
+                />
              </EditableWrapper>
 
              <motion.div variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs text-center" style={{top:'99px', left:0, width:'200px'}}>

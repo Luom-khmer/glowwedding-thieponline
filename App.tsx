@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Menu, X, ArrowRight, User as UserIcon, LogOut, FolderHeart, Save, Heart, ShieldCheck, Lock, Shield, Loader2, Link as LinkIcon } from 'lucide-react';
@@ -478,10 +477,9 @@ function App() {
   // Loading Screen for Guest View & Tool View
   if (isLoadingInvitation) {
       return (
-          <div className="min-h-screen flex items-center justify-center bg-rose-50">
+          <div className="min-h-screen flex items-center justify-center bg-white">
               <div className="text-center">
-                  <Loader2 className="w-10 h-10 text-rose-500 animate-spin mx-auto mb-4" />
-                  <p className="text-gray-600 font-medium">Đang tải thiệp mời...</p>
+                  <Heart className="w-14 h-14 text-rose-500 animate-pulse mx-auto" fill="currentColor" />
               </div>
           </div>
       );
@@ -679,120 +677,79 @@ function App() {
 
           {/* ADMIN DASHBOARD VIEW (ADMIN ONLY) */}
           {view === 'admin-dashboard' && isAdmin && (
-              <motion.div
-                  key="admin-dashboard"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-              >
-                  <AdminDashboard onBack={() => setView('home')} />
-              </motion.div>
-          )}
-
-          {/* REAL GUEST VIEW SIMULATION */}
-          {view === 'guest-view' && viewingInvitation && (
-             <motion.div 
-                key="guest-view-screen"
+            <motion.div
+                key="admin-dashboard"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="w-full h-screen bg-black flex items-center justify-center relative"
-             >
-                {/* Chỉ hiển thị nút đóng nếu là Editor đang xem thử (CHƯA CÓ ID), khách thật (CÓ ID) sẽ không thấy nút này */}
-                {canEdit && !window.location.search.includes('invitationId') && (
-                    <button 
-                        onClick={() => setView('guest-manager')}
-                        className="fixed top-4 left-4 z-[9999] bg-white/20 hover:bg-white/40 text-white rounded-full p-2 backdrop-blur-md transition-all"
-                        title="Đóng chế độ khách xem"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
-                )}
-                
-                {/* TOOL: Nút Tạo Link Cá Nhân Hóa (CHỈ HIỆN CHO ADMIN/EDITOR VÀ KHI KHÔNG PHẢI LÀ LINK CHIA SẺ TRỰC TIẾP) */}
-                {canEdit && !window.location.search.includes('invitationId') && (
-                    <button 
-                        onClick={() => setIsLinkGeneratorOpen(true)}
-                        className="fixed bottom-20 left-4 z-[9999] bg-[#7d1f2a]/90 hover:bg-[#7d1f2a] text-white rounded-full p-3 shadow-lg backdrop-blur-md transition-all flex items-center gap-2 pr-4 border border-rose-300"
-                        title="Tạo link mời riêng"
-                    >
-                        <LinkIcon className="w-5 h-5 animate-pulse" />
-                        <span className="text-xs font-bold uppercase">Tạo Link Mời</span>
-                    </button>
-                )}
-
-                <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-y-auto">
-                     {/* FIX LOGIC: Dựa vào style để quyết định render mẫu nào, thay vì centerImage */}
-                     {viewingInvitation.data.style === 'red-gold' ? (
-                        <TemplateRedGold 
-                            data={viewingInvitation.data} 
-                            readonly={true} 
-                            invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} 
-                        />
-                     ) : (
-                        <TemplatePersonalized 
-                            data={viewingInvitation.data} 
-                            readonly={true} 
-                            invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} 
-                        />
-                     )}
-                </div>
-             </motion.div>
+                exit={{ opacity: 0 }}
+            >
+                <AdminDashboard onBack={() => setView('home')} />
+            </motion.div>
           )}
-
-
+          
           {/* PRICING VIEW */}
           {view === 'pricing' && (
+              <motion.div
+                key="pricing"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                  <Pricing onSelectPlan={handleSelectPlan} />
+              </motion.div>
+          )}
+          
+          {/* LOGIN VIEW */}
+          {view === 'login' && (
              <motion.div
-             key="pricing"
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
+                key="login"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                className="flex flex-col items-center justify-center min-h-[60vh] px-4"
              >
-                <Pricing onSelectPlan={handleSelectPlan} />
+                 <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
+                     <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                         <UserIcon className="w-8 h-8 text-rose-500" />
+                     </div>
+                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Đăng Nhập</h2>
+                     <p className="text-gray-500 mb-6">Đăng nhập để lưu và quản lý các mẫu thiệp cưới của bạn.</p>
+                     
+                     <button 
+                        onClick={handleFirebaseLogin}
+                        disabled={isLoadingAuth}
+                        className="w-full bg-white border border-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition shadow-sm"
+                     >
+                        {isLoadingAuth ? <Loader2 className="animate-spin w-5 h-5" /> : (
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                        )}
+                        Tiếp tục với Google
+                     </button>
+                     <button onClick={() => setView('home')} className="mt-4 text-sm text-gray-400 hover:text-gray-600 underline">Quay lại trang chủ</button>
+                 </div>
              </motion.div>
           )}
 
-          {/* LOGIN VIEW */}
-          {view === 'login' && (
-             <motion.div 
-             key="login"
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
-             className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 relative z-10"
-           >
-             <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-rose-400 to-amber-300"></div>
-                
-                <h2 className="text-2xl font-bold text-center mb-2 serif text-gray-900">Đăng Nhập Hệ Thống</h2>
-                <p className="text-gray-500 mb-8 text-sm">Đăng nhập để xác định quyền hạn (Admin / Editor / User).</p>
-                
-                <button 
-                  onClick={handleFirebaseLogin}
-                  disabled={isLoadingAuth}
-                  className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-full font-medium shadow-sm hover:bg-gray-50 hover:shadow transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  {isLoadingAuth ? (
-                     <span className="w-5 h-5 border-2 border-gray-300 border-t-rose-500 rounded-full animate-spin"></span>
-                  ) : (
-                    <>
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                      <span>Tiếp tục với Google</span>
-                    </>
-                  )}
-                </button>
-                
-                <div className="flex items-center justify-center gap-2 mt-4 text-[11px] text-gray-400">
-                   <ShieldCheck className="w-3 h-3" /> Bảo mật bởi Google Firebase
-                </div>
-                
-                <button onClick={() => setView('home')} className="block w-full text-center mt-6 text-sm text-gray-500 hover:text-rose-500 transition">
-                    Quay lại trang chủ
-                </button>
-             </div>
-           </motion.div>
+          {/* GUEST VIEW - Hiển thị thiệp cho khách (Không có header/footer app) */}
+          {view === 'guest-view' && viewingInvitation && (
+               (() => {
+                   // Logic chọn component hiển thị dựa trên style
+                   const tpl = TEMPLATES.find(t => t.style === viewingInvitation.data.style) || TEMPLATES[0];
+                   
+                   if (tpl.style === 'red-gold') {
+                        return <TemplateRedGold data={viewingInvitation.data} readonly={true} invitationId={viewingInvitation.id} guestName={guestNameFromUrl} />
+                   } else if (tpl.style === 'personalized') {
+                        return <TemplatePersonalized data={viewingInvitation.data} readonly={true} invitationId={viewingInvitation.id} guestName={guestNameFromUrl} />
+                   }
+                   
+                   // Fallback cho các mẫu cũ
+                   return <Preview 
+                       key="guest-view-fallback"
+                       data={viewingInvitation.data} 
+                       template={tpl} 
+                       onBack={() => {}}
+                       readonly={true} 
+                       onSave={undefined}
+                   />
+               })()
           )}
 
         </AnimatePresence>

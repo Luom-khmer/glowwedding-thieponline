@@ -3,14 +3,15 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// --- CẤU HÌNH CỦA BẠN (Dán thông tin từ Bước 5 vào đây) ---
+// --- CẤU HÌNH CỦA BẠN ---
 const firebaseConfig = {
-  apiKey: "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY",
-  authDomain: "PROJECT_ID_CỦA_BẠN.firebaseapp.com",
-  projectId: "PROJECT_ID_CỦA_BẠN",
-  storageBucket: "PROJECT_ID_CỦA_BẠN.firebasestorage.app",
-  messagingSenderId: "SỐ_ID_CỦA_BẠN",
-  appId: "APP_ID_CỦA_BẠN"
+    apiKey: "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs",
+    authDomain: "glowwedding-e5f9b.firebaseapp.com",
+    projectId: "glowwedding-e5f9b",
+    storageBucket: "glowwedding-e5f9b.firebasestorage.app",
+    messagingSenderId: "574284120272",
+    appId: "1:574284120272:web:a344b3bb05d1cd5ab1ded5",
+    measurementId: "G-TCS6LG5RKL"
 };
 
 // Khởi tạo Firebase

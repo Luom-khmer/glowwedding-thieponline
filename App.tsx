@@ -161,12 +161,6 @@ function App() {
   };
 
   const handleFirebaseLogin = async () => {
-    // @ts-ignore
-    const currentApiKey = auth.app.options.apiKey;
-    if (!currentApiKey || currentApiKey === "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs") {
-        // Warning if default key
-    }
-
     setIsLoadingAuth(true);
     try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -175,7 +169,15 @@ function App() {
         setView('home');
     } catch (error: any) {
         console.error("Login Error:", error);
-        alert("Đăng nhập thất bại. " + error.message);
+        
+        // Handle Specific Config Errors
+        if (error.code === 'auth/network-request-failed') {
+             alert("🔴 LỖI KẾT NỐI (Network Request Failed)\n\nKhông thể kết nối đến Firebase. Vui lòng kiểm tra:\n1. Kết nối mạng của bạn.\n2. Tên miền Vercel đã được thêm vào Authorized Domains trên Firebase Console chưa?\n3. Config trong services/firebase.ts có chính xác không?");
+        } else if (error.code === 'auth/api-key-not-valid-please-pass-a-valid-api-key') {
+             alert("🔴 LỖI API KEY\n\nAPI Key trong cấu hình không hợp lệ.");
+        } else {
+             alert("Đăng nhập thất bại: " + error.message);
+        }
     } finally {
         setIsLoadingAuth(false);
     }
@@ -234,6 +236,8 @@ function App() {
              alert("🔴 LỖI: KHÔNG CÓ QUYỀN GHI DỮ LIỆU (Permission Denied)\n\nNguyên nhân: Bạn chưa dán đoạn code 'Luật Bảo Mật' vào Firebase Console.\n\nCách sửa: Hãy copy đoạn code tôi vừa gửi và dán vào Tab 'Rules' trên Firebase Console của bạn.");
         } else if (e.message && (e.message.includes("API key") || e.code === "auth/api-key-not-valid-please-pass-a-valid-api-key")) {
              alert("🔴 LỖI: API KEY KHÔNG HỢP LỆ\n\nNguyên nhân: Bạn chưa thay API Key của riêng bạn vào file code.\n\nCách sửa: Mở file 'services/firebase.ts' và dán API Key lấy từ Project Settings.");
+        } else if (e.code === 'auth/network-request-failed') {
+             alert("🔴 LỖI KẾT NỐI\n\nKiểm tra lại config Firebase, có thể bạn đang dùng ID dự án giả.");
         } else {
              alert("Lỗi khi lưu thiệp: " + e.message);
         }

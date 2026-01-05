@@ -73,13 +73,6 @@ export type ViewState = 'home' | 'templates' | 'editor' | 'preview' | 'login' | 
 
 export const TEMPLATES: Template[] = [
   {
-    id: 't5',
-    name: 'Hỷ Tước Tranh Châu',
-    thumbnailUrl: 'https://content.pancake.vn/1/fwebp0/06/92/cf/37/91602f3e90b650de349806f37b724ef20cbf59562bb96d335e1b9221-w:1200-h:630-l:898453-t:image/png.png',
-    style: 'red-gold',
-    color: 'bg-red-50'
-  },
-  {
     id: 't6',
     name: 'Thiệp dùng tên riêng',
     thumbnailUrl: 'https://statics.pancake.vn/web-media/3c/3b/ca/e1/e12ca0e6af675d653327f5a3b5d2c7c2385f71d26b8fee7604b45828-w:1706-h:2560-l:224512-t:image/jpeg.jpg',

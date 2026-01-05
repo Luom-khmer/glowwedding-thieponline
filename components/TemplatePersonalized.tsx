@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { InvitationData } from '../types';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Pencil, Save, Upload, Check, Music, ZoomIn, ZoomOut, RotateCw, Heart, Loader2, Link } from 'lucide-react';
 import { Button } from './Button';
 import Cropper from 'react-easy-crop';
@@ -369,16 +369,16 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
   `;
 
   // Animations (Matching Webcake)
-  const fadeIn: Variants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
-  const fadeInUp: Variants = { hidden: { opacity: 0, y: 100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
-  const fadeInDown: Variants = { hidden: { opacity: 0, y: -100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
-  const fadeInLeft: Variants = { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
-  const fadeInRight: Variants = { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
-  const zoomIn: Variants = { hidden: { opacity: 0, scale: 0.3 }, visible: { opacity: 1, scale: 1, transition: { duration: 1.5 } } };
-  const slideInLeft: Variants = { hidden: { x: '-100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
-  const slideInRight: Variants = { hidden: { x: '100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
-  const slideInUp: Variants = { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.5 } } };
-  const pulse: Variants = { visible: { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 2 } } };
+  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
+  const fadeInUp = { hidden: { opacity: 0, y: 100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
+  const fadeInDown = { hidden: { opacity: 0, y: -100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
+  const fadeInLeft = { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
+  const fadeInRight = { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
+  const zoomIn = { hidden: { opacity: 0, scale: 0.3 }, visible: { opacity: 1, scale: 1, transition: { duration: 1.5 } } };
+  const slideInLeft = { hidden: { x: '-100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
+  const slideInRight = { hidden: { x: '100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
+  const slideInUp = { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.5 } } };
+  const pulse = { visible: { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 2 } } };
 
   // Curtain Variants (Open from center)
   const curtainLeftVar = {
@@ -895,8 +895,22 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
 
         {/* Music Button */}
         <div className="fixed bottom-4 left-4 z-50">
-            <button type="button" onClick={handleMusicClick} className="w-14 h-14 bg-white/50 backdrop-blur rounded-full flex items-center justify-center shadow-lg border-none animate-spin-slow" style={{animationDuration: isPlaying ? '4s' : '0s'}}>
-                <Music className={isPlaying ? "text-rose-600" : "text-gray-500"} />
+            <button 
+                type="button"
+                onClick={handleMusicClick}
+                className="w-14 h-14 bg-white/30 backdrop-blur rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform border-none outline-none relative group"
+            >
+                {isPlaying ? 
+                    <img src="https://content.pancake.vn/1/31/08/c9/52/c9f574ca2fa8481e1c8c657100583ddfbf47e33427d480a7dc32e788-w:200-h:200-l:242141-t:image/gif.gif" className="w-11 h-11" alt="Music playing" />
+                    : 
+                    <img src="https://content.pancake.vn/1/02/d4/a7/88/fef5132f979892c1778a688f2039942fc24b396b332750179775f87e-w:200-h:200-l:8183-t:image/png.png" className="w-11 h-11" alt="Music paused" />
+                }
+                
+                {(isEditMode && !readonly) && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                        <Upload className="w-6 h-6 text-white" />
+                    </div>
+                )}
             </button>
             {(isEditMode && !readonly) && <div className="text-white text-xs bg-black/50 px-2 py-1 rounded mt-1 text-center">Đổi nhạc</div>}
         </div>

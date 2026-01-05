@@ -9,14 +9,13 @@ import { getFirestore } from "firebase/firestore";
 // 3. Vào Build -> Firestore Database -> Rules: Cập nhật rules để cho phép đọc/ghi
 
 const firebaseConfig = {
-  // Thay thế bằng thông tin thật của bạn
-  apiKey: "AIzaSyD-YOUR_REAL_API_KEY_HERE", 
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.firebasestorage.app",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef",
-  measurementId: "G-XYZ"
+  apiKey: "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs",
+  authDomain: "glowwedding-e5f9b.firebaseapp.com",
+  projectId: "glowwedding-e5f9b",
+  storageBucket: "glowwedding-e5f9b.firebasestorage.app",
+  messagingSenderId: "574284120272",
+  appId: "1:574284120272:web:a344b3bb05d1cd5ab1ded5",
+  measurementId: "G-TCS6LG5RKL"
 };
 
 // Khởi tạo Firebase

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { userService } from '../services/userService';
 import { Button } from './Button';
-import { Shield, User as UserIcon, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Shield, User as UserIcon, CheckCircle, ArrowLeft, AlertTriangle, ExternalLink } from 'lucide-react';
 import { UserRole } from '../types';
 
 interface AdminDashboardProps {
@@ -23,7 +23,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setUsers(list);
     } catch (error) {
       console.error("Lỗi tải danh sách user:", error);
-      alert("Không thể tải danh sách người dùng.");
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +44,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       setUsers(users.map(u => u.id === uid ? { ...u, role: newRole } : u));
     } catch (error) {
       console.error("Lỗi cập nhật quyền:", error);
-      alert("Cập nhật thất bại.");
+      alert("Cập nhật thất bại. Vui lòng kiểm tra Firebase Rules.");
     }
   };
 
@@ -73,6 +72,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           </Button>
         </div>
 
+        {/* CẢNH BÁO NẾU KHÔNG CÓ USER (THƯỜNG DO CHƯA CẤU HÌNH RULES) */}
+        {!isLoading && users.length === 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8 shadow-sm">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 bg-amber-100 rounded-full">
+                        <AlertTriangle className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-amber-900 mb-2">Chưa thấy danh sách người dùng?</h3>
+                        <p className="text-amber-800 mb-4 text-sm">
+                            Có vẻ như bạn chưa cấu hình <strong>Firestore Security Rules</strong>. Firebase chặn việc ghi dữ liệu theo mặc định để bảo mật, do đó thông tin đăng nhập của bạn chưa được lưu vào Database.
+                        </p>
+                        
+                        <div className="bg-white p-4 rounded-lg border border-amber-200 text-xs font-mono text-gray-600 overflow-x-auto mb-4">
+                            <p className="text-gray-400 mb-2">// Copy đoạn này vào: Firebase Console &rarr; Firestore Database &rarr; Rules</p>
+                            <pre>{`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}`}</pre>
+                        </div>
+                        
+                        <a 
+                            href="https://console.firebase.google.com/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm font-bold text-amber-700 hover:text-amber-900 hover:underline"
+                        >
+                            Đến Firebase Console ngay <ExternalLink className="w-4 h-4 ml-1" />
+                        </a>
+                        
+                        <p className="mt-2 text-xs text-amber-700 italic">Sau khi cập nhật Rules, hãy đăng xuất và đăng nhập lại để hệ thống đồng bộ dữ liệu.</p>
+                    </div>
+                </div>
+            </div>
+        )}
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Danh sách người dùng ({users.length})</h3>
@@ -81,7 +120,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           
           {isLoading ? (
             <div className="p-12 text-center text-gray-500">Đang tải dữ liệu...</div>
-          ) : (
+          ) : users.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -124,6 +163,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            <div className="p-12 text-center text-gray-400 italic">
+                Danh sách trống. Vui lòng kiểm tra cấu hình Firebase Rules ở trên.
             </div>
           )}
         </div>

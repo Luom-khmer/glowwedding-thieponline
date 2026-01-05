@@ -3,15 +3,20 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Cấu hình Firebase Production (Glow Wedding)
+// --- HƯỚNG DẪN CẤU HÌNH ---
+// 1. Vào console.firebase.google.com -> Project Settings -> General -> Your apps
+// 2. Copy config dán vào bên dưới
+// 3. Vào Build -> Firestore Database -> Rules: Cập nhật rules để cho phép đọc/ghi
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAPvcz6uQkoFmU4nUmGinDiN_rwTS4eSEs",
-  authDomain: "glowwedding-e5f9b.firebaseapp.com",
-  projectId: "glowwedding-e5f9b",
-  storageBucket: "glowwedding-e5f9b.firebasestorage.app",
-  messagingSenderId: "574284120272",
-  appId: "1:574284120272:web:a344b3bb05d1cd5ab1ded5",
-  measurementId: "G-TCS6LG5RKL"
+  // Thay thế bằng thông tin thật của bạn
+  apiKey: "AIzaSyD-YOUR_REAL_API_KEY_HERE", 
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.firebasestorage.app",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef",
+  measurementId: "G-XYZ"
 };
 
 // Khởi tạo Firebase

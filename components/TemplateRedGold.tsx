@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { InvitationData } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { X, Pencil, Save, Upload, Check, Heart, Music, ZoomIn, ZoomOut, RotateCw, Loader2, Link } from 'lucide-react';
 import { Button } from './Button';
 import { convertSolarToLunarFull } from '../utils/lunar';
@@ -537,12 +537,12 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
   `;
 
   // Animation variants
-  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
-  const fadeInUp = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } };
-  const fadeInDown = { hidden: { opacity: 0, y: -50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } };
-  const zoomIn = { hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.8 } } };
+  const fadeIn: Variants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
+  const fadeInUp: Variants = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } };
+  const fadeInDown: Variants = { hidden: { opacity: 0, y: -50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } };
+  const zoomIn: Variants = { hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.8 } } };
   
-  const smoothGallery = { 
+  const smoothGallery: Variants = { 
       hidden: { opacity: 0, y: 30, scale: 0.98 }, 
       visible: { 
           opacity: 1, 
@@ -555,16 +555,16 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
       } 
   };
 
-  const slideFromLeft = { 
+  const slideFromLeft: Variants = { 
       hidden: { opacity: 0, x: -50, filter: 'blur(10px)' }, 
       visible: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 1.2, ease: "easeOut" } } 
   };
-  const slideFromRight = { 
+  const slideFromRight: Variants = { 
       hidden: { opacity: 0, x: 50, filter: 'blur(10px)' }, 
       visible: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 1.2, ease: "easeOut" } } 
   };
 
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,

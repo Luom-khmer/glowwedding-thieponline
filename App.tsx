@@ -74,11 +74,14 @@ function App() {
   const [viewingInvitation, setViewingInvitation] = useState<SavedInvitation | null>(null);
 
   // Role Helpers
+  // canEdit: Có quyền chỉnh sửa không? (Admin hoặc Editor)
   const canEdit = user ? (user.role === 'admin' || user.role === 'editor') : false;
+  // isAdmin: Có quyền quản trị hệ thống không?
   const isAdmin = user ? user.role === 'admin' : false;
 
   // Handlers
   const handleStart = () => {
+      // Nếu có quyền thì vào Template, chưa thì bắt login
       if (canEdit) {
           setView('templates');
       } else {
@@ -87,6 +90,7 @@ function App() {
   };
   
   const handleSelectTemplate = (t: Template) => {
+    // Nếu không có quyền, CHẶN NGAY LẬP TỨC
     if (!canEdit) {
         alert("Bạn đang ở quyền 'User' (Khách). \nBạn cần quyền 'Editor' hoặc 'Admin' để chỉnh sửa thiệp.\nVui lòng liên hệ Admin để được cấp quyền.");
         return;
@@ -109,34 +113,21 @@ function App() {
   const handleFirebaseLogin = async () => {
     // @ts-ignore
     const currentApiKey = auth.app.options.apiKey;
-    
-    // Kiểm tra chính xác chuỗi placeholder trong services/firebase.ts
-    // Nếu key chứa 'YOUR_REAL_API_KEY' nghĩa là người dùng chưa thay key thật
-    if (!currentApiKey || currentApiKey.includes("YOUR_REAL_API_KEY")) {
-        alert("⚠️ LỖI CẤU HÌNH FIREBASE\n\nBạn chưa nhập API Key thật vào file 'services/firebase.ts'.\nVui lòng vào Firebase Console lấy config và dán vào code để tiếp tục.");
+    if (!currentApiKey || currentApiKey === "AIzaSyD-YOUR_API_KEY_HERE") {
+        alert("⚠️ BẠN CHƯA CẤU HÌNH FIREBASE!");
         return;
     }
 
     setIsLoadingAuth(true);
     try {
         const result = await signInWithPopup(auth, googleProvider);
+        // Sau khi login Firebase, đồng bộ user vào Firestore để lấy Role mới nhất
         const syncedUser = await userService.syncUser(result.user);
         setUser(syncedUser);
         setView('home');
     } catch (error: any) {
         console.error("Login Error:", error);
-        
-        let msg = "Đăng nhập thất bại.";
-        if (error.code === 'auth/api-key-not-valid') {
-            msg = "API Key Firebase không hợp lệ. Vui lòng kiểm tra lại file services/firebase.ts";
-        } else if (error.code === 'auth/operation-not-allowed') {
-            msg = "Bạn chưa bật Google Auth trong Firebase Console (Build -> Authentication).";
-        } else if (error.code === 'auth/popup-closed-by-user') {
-            msg = "Bạn đã đóng cửa sổ đăng nhập.";
-        } else {
-            msg += " " + error.message;
-        }
-        alert(msg);
+        alert("Đăng nhập thất bại. " + error.message);
     } finally {
         setIsLoadingAuth(false);
     }
@@ -188,31 +179,28 @@ function App() {
 
   // Firebase Auth Observer
   useEffect(() => {
-    // Chỉ lắng nghe Auth nếu key có vẻ hợp lệ (không phải placeholder)
-    // @ts-ignore
-    const currentApiKey = auth.app.options.apiKey;
-    if (currentApiKey && !currentApiKey.includes("YOUR_REAL_API_KEY")) {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                try {
-                    const syncedUser = await userService.syncUser(currentUser);
-                    setUser(syncedUser);
-                } catch (e) {
-                    console.error("Error syncing user on reload", e);
-                    setUser({
-                        uid: currentUser.uid,
-                        name: currentUser.displayName || 'User',
-                        email: currentUser.email || '',
-                        picture: currentUser.photoURL || '',
-                        role: 'user' 
-                    });
-                }
-            } else {
-                setUser(null);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+            // Khi reload trang, fetch lại role từ DB để đảm bảo đúng quyền
+            try {
+                const syncedUser = await userService.syncUser(currentUser);
+                setUser(syncedUser);
+            } catch (e) {
+                console.error("Error syncing user on reload", e);
+                // Fallback nếu lỗi mạng, mặc định là user để an toàn
+                setUser({
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || 'User',
+                    email: currentUser.email || '',
+                    picture: currentUser.photoURL || '',
+                    role: 'user' 
+                });
             }
-        });
-        return () => unsubscribe();
-    }
+        } else {
+            setUser(null);
+        }
+    });
+    return () => unsubscribe();
   }, []);
 
   const Header = () => (

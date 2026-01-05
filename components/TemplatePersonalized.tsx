@@ -314,28 +314,27 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
       )
   };
 
+  // OPTIMIZED Cinematic Image
   const CinematicImage = ({ src, className = "", style, enableKenBurns = false, delay = 0 }: any) => {
       const isBase64 = src?.startsWith('data:');
-      const shouldSkipEntry = isBase64;
-
+      // REMOVE BLUR EFFECT: Using only Opacity and Scale for better mobile performance
       return (
           <div className={`w-full h-full overflow-hidden relative bg-gray-200 ${className}`} style={style}>
               <motion.img
                   key={src}
                   src={src}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hardware-accelerated"
                   alt="Wedding content"
-                  initial={shouldSkipEntry ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : { opacity: 0, scale: 1.2, filter: 'blur(5px)' }}
-                  whileInView={shouldSkipEntry ? undefined : { 
+                  initial={isBase64 ? { opacity: 1 } : { opacity: 0, scale: 1.2 }}
+                  whileInView={{ 
                       opacity: 1, 
-                      scale: 1, 
-                      filter: 'blur(0px)',
+                      scale: 1,
                       transition: { duration: 1.2, ease: "easeOut", delay: delay } 
                   }}
                   animate={enableKenBurns ? {
                       scale: [1, 1.1],
                       transition: {
-                        duration: 15,
+                        duration: 20, // Slower duration for smoother feel
                         ease: "linear",
                         repeat: Infinity,
                         repeatType: "reverse",
@@ -390,18 +389,25 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
     .calendar-cell { height: 36px; display: flex; align-items: center; justify-content: center; position: relative; }
     @keyframes heart-beat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     .animate-heart-beat { animation: heart-beat 1.5s infinite; }
+
+    /* Hardware Acceleration Helper */
+    .hardware-accelerated {
+        will-change: transform, opacity;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
   `;
 
-  // Animations (Matching Webcake)
-  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
-  const fadeInUp = { hidden: { opacity: 0, y: 100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
-  const fadeInDown = { hidden: { opacity: 0, y: -100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
-  const fadeInLeft = { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
-  const fadeInRight = { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
-  const zoomIn = { hidden: { opacity: 0, scale: 0.3 }, visible: { opacity: 1, scale: 1, transition: { duration: 1.5 } } };
+  // Animations (Optimized for Smoothness)
+  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2 } } };
+  const fadeInUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 1, ease: "easeOut" } } };
+  const fadeInDown = { hidden: { opacity: 0, y: -30 }, visible: { opacity: 1, y: 0, transition: { duration: 1, ease: "easeOut" } } };
+  const fadeInLeft = { hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: { duration: 1, ease: "easeOut" } } };
+  const fadeInRight = { hidden: { opacity: 0, x: 30 }, visible: { opacity: 1, x: 0, transition: { duration: 1, ease: "easeOut" } } };
+  const zoomIn = { hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 1, ease: "easeOut" } } };
   const slideInLeft = { hidden: { x: '-100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
   const slideInRight = { hidden: { x: '100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
-  const slideInUp = { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.5 } } };
+  const slideInUp = { hidden: { y: '50%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.2, ease: "easeOut" } } };
   const pulse = { visible: { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 2 } } };
 
   // Curtain Variants (Open from center)
@@ -414,19 +420,19 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
     open: { x: '100%', transition: { duration: 2.5, ease: [0.4, 0, 0.2, 1] } }
   };
 
-  // Delayed content appearance (Updated timing to match reference)
+  // Delayed content appearance
   const contentContainerVariants = {
-    hidden: { opacity: 0, scale: 0.95, y: 30 }, // Add subtle initial state
+    hidden: { opacity: 0, scale: 0.98, y: 20 },
     visible: { 
       opacity: 1,
       scale: 1,
       y: 0,
       transition: { 
-        duration: 2.5,
+        duration: 2.0,
         ease: "easeOut",
         delay: 0.2,
-        delayChildren: 2.2, // Updated delay to 2.2s
-        staggerChildren: 0.15 // Updated stagger
+        delayChildren: 2.0,
+        staggerChildren: 0.1
       } 
     }
   };

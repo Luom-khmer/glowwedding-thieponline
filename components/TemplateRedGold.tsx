@@ -301,18 +301,24 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
       )
   };
 
-  // Simplified Cinematic Image for Smoothness
+  // OPTIMIZED Cinematic Image for Maximum Performance
   const CinematicImage = ({ src, className = "", style, delay = 0 }: any) => {
       const isBase64 = src?.startsWith('data:');
+      // REMOVE BLUR EFFECT: Blurring is very expensive on mobile GPUs. 
+      // Using only Opacity and Scale ensures 60fps.
       return (
           <div className={`w-full h-full overflow-hidden relative bg-gray-200 ${className}`} style={style}>
               <motion.img
                   key={src}
                   src={src}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hardware-accelerated"
                   alt="Wedding content"
-                  initial={isBase64 ? { opacity: 1 } : { opacity: 0 }}
-                  whileInView={{ opacity: 1, transition: { duration: 0.8 } }}
+                  initial={isBase64 ? { opacity: 1 } : { opacity: 0, scale: 1.1 }}
+                  whileInView={{ 
+                      opacity: 1, 
+                      scale: 1,
+                      transition: { duration: 1.2, ease: "easeOut" } 
+                  }}
                   viewport={{ once: true }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60 pointer-events-none"></div>
@@ -344,12 +350,19 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
     .inp-style { background: white; border: 1px solid rgba(142, 1, 1, 1); border-radius: 10px; color: rgba(153, 0, 0, 1); padding: 0 10px; width: 100%; height: 100%; outline: none; }
     @keyframes pulse-custom { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(177, 0, 0, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(177, 0, 0, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(177, 0, 0, 0); } }
     .animate-pulse-custom { animation: pulse-custom 2s infinite; }
+    
+    /* Hardware Acceleration Helper */
+    .hardware-accelerated {
+        will-change: transform, opacity;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
   `;
 
-  // Simplified Variants for Smoothness
-  const fadeInUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
-  const fadeInDown = { hidden: { opacity: 0, y: -30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
-  const zoomIn = { hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } } };
+  // Simplified Variants for Smoothness - Removed Y offset for quicker, smoother entry
+  const fadeInUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
+  const fadeInDown = { hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
+  const zoomIn = { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: "easeOut" } } };
   const contentContainerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, delay: 0.2, staggerChildren: 0.1 } } };
 
   return (

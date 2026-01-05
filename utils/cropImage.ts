@@ -81,6 +81,29 @@ export default async function getCroppedImg(
   // paste generated rotate image at the top left corner
   ctx.putImageData(data, 0, 0)
 
-  // As Base64 string
-  return canvas.toDataURL('image/jpeg', 0.95); // High quality JPEG
+  // --- TỐI ƯU DUNG LƯỢNG ẢNH ĐỂ TRÁNH LỖI FIREBASE PAYLOAD LIMIT ---
+  // Giới hạn kích thước tối đa (ví dụ 960px) để giảm dung lượng base64
+  const MAX_SIZE = 960; 
+  let outputCanvas = canvas;
+
+  if (canvas.width > MAX_SIZE || canvas.height > MAX_SIZE) {
+      const ratio = Math.min(MAX_SIZE / canvas.width, MAX_SIZE / canvas.height);
+      const newWidth = Math.round(canvas.width * ratio);
+      const newHeight = Math.round(canvas.height * ratio);
+      
+      const resizedCanvas = document.createElement('canvas');
+      resizedCanvas.width = newWidth;
+      resizedCanvas.height = newHeight;
+      const resizedCtx = resizedCanvas.getContext('2d');
+      
+      if (resizedCtx) {
+          resizedCtx.imageSmoothingEnabled = true;
+          resizedCtx.imageSmoothingQuality = 'high';
+          resizedCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+          outputCanvas = resizedCanvas;
+      }
+  }
+
+  // Giảm chất lượng xuống 0.7 (70%) - Vẫn đủ đẹp cho web mobile nhưng giảm size đáng kể
+  return outputCanvas.toDataURL('image/jpeg', 0.7);
 }

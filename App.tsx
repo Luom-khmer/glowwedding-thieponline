@@ -80,7 +80,9 @@ const mergeWithDefaults = (data: InvitationData): InvitationData => {
         footerImage: data.footerImage || initialData.footerImage,
         bankInfo: data.bankInfo || initialData.bankInfo,
         qrCodeUrl: data.qrCodeUrl || initialData.qrCodeUrl,
-        musicUrl: data.musicUrl || initialData.musicUrl
+        musicUrl: data.musicUrl || initialData.musicUrl,
+        // QUAN TRỌNG: Giữ nguyên style từ DB nếu có
+        style: data.style || initialData.style
     };
 };
 
@@ -690,19 +692,20 @@ function App() {
                 )}
 
                 <div className="w-full h-full bg-white max-w-[420px] mx-auto shadow-2xl relative overflow-y-auto">
-                     {viewingInvitation.data.centerImage ? (
+                     {/* FIX LOGIC: Dựa vào style để quyết định render mẫu nào, thay vì centerImage */}
+                     {viewingInvitation.data.style === 'red-gold' ? (
                         <TemplateRedGold 
                             data={viewingInvitation.data} 
                             readonly={true} 
                             invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
+                            guestName={guestNameFromUrl} 
                         />
                      ) : (
                         <TemplatePersonalized 
                             data={viewingInvitation.data} 
                             readonly={true} 
                             invitationId={viewingInvitation.id}
-                            guestName={guestNameFromUrl} // Truyền tên khách từ URL
+                            guestName={guestNameFromUrl} 
                         />
                      )}
                 </div>

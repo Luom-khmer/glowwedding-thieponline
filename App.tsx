@@ -81,20 +81,12 @@ function App() {
 
   // Handlers
   const handleStart = () => {
-      // Nếu có quyền thì vào Template, chưa thì bắt login
-      if (canEdit) {
-          setView('templates');
-      } else {
-          setView('login');
-      }
+      // Cho phép mọi người vào xem mẫu (Templates)
+      setView('templates');
   };
   
   const handleSelectTemplate = (t: Template) => {
-    // Nếu không có quyền, CHẶN NGAY LẬP TỨC
-    if (!canEdit) {
-        alert("Bạn đang ở quyền 'User' (Khách). \nBạn cần quyền 'Editor' hoặc 'Admin' để chỉnh sửa thiệp.\nVui lòng liên hệ Admin để được cấp quyền.");
-        return;
-    }
+    // Bỏ chặn User thường, cho phép vào Preview ở chế độ readonly
     setSelectedTemplate(t);
     setView('preview');
   };
@@ -221,10 +213,12 @@ function App() {
           </div>
           
           <div className="hidden md:flex space-x-8 items-center">
+            {/* Menu Mẫu Thiệp hiện cho tất cả mọi người */}
+            <button onClick={() => setView('templates')} className="text-gray-600 hover:text-rose-500 transition font-medium">Mẫu Thiệp</button>
+
             {/* Menu chỉ hiện cho Admin/Editor */}
             {canEdit && (
                 <>
-                    <button onClick={() => setView('templates')} className="text-gray-600 hover:text-rose-500 transition font-medium">Mẫu Thiệp</button>
                     <button onClick={() => setView('guest-manager')} className="text-gray-600 hover:text-rose-500 transition flex items-center gap-1 font-medium">
                         <FolderHeart className="w-4 h-4" /> Đơn Hàng
                     </button>
@@ -281,9 +275,10 @@ function App() {
                  <div className="py-3 px-4 text-rose-600 font-medium border-b border-gray-50 mb-2">Xin chào, {user.name} ({user.role})</div>
               )}
               
+              <button onClick={() => { setView('templates'); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-4 rounded-lg hover:bg-rose-50 text-gray-700 font-medium">Mẫu Thiệp</button>
+
               {canEdit && (
                 <>
-                    <button onClick={() => { setView('templates'); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-4 rounded-lg hover:bg-rose-50 text-gray-700 font-medium">Mẫu Thiệp</button>
                     <button onClick={() => { setView('guest-manager'); setIsMenuOpen(false); }} className="block w-full text-left py-3 px-4 rounded-lg hover:bg-rose-50 text-gray-700 font-medium">Quản Lý Đơn Hàng</button>
                 </>
               )}
@@ -384,25 +379,21 @@ function App() {
                   Tạo thiệp cưới đẹp lung linh chỉ trong vài phút. 
                   {canEdit 
                     ? " Bắt đầu thiết kế ngay với quyền Editor của bạn."
-                    : " Đăng nhập để xem các mẫu thiệp mới nhất."
+                    : " Xem các mẫu thiệp mới nhất ngay hôm nay."
                   }
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button onClick={handleStart} className="text-lg px-8 py-4 shadow-xl shadow-rose-200/50">
-                    {canEdit ? "Tạo Thiệp Ngay" : "Đăng Nhập Ngay"} <ArrowRight className="ml-2 w-5 h-5" />
+                    {canEdit ? "Tạo Thiệp Ngay" : "Xem Mẫu Ngay"} <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                   
-                  {canEdit && (
-                    <Button variant="outline" className="text-lg px-8 py-4 bg-white/50 backdrop-blur-sm" onClick={() => setView('templates')}>
-                        Xem Mẫu Demo
-                    </Button>
-                  )}
+                  {/* Nút Xem Mẫu Demo đã được tích hợp vào nút chính đối với khách */}
                 </div>
               </motion.div>
             </motion.div>
           )}
 
-          {/* TEMPLATES VIEW (PROTECTED) */}
+          {/* TEMPLATES VIEW */}
           {view === 'templates' && (
             <motion.div
               key="templates"
@@ -424,22 +415,17 @@ function App() {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer group border border-gray-100 relative"
                     onClick={() => handleSelectTemplate(t)}
                   >
-                    {/* Hiển thị lớp phủ khóa nếu không phải Admin/Editor */}
-                    {!canEdit && (
-                        <div className="absolute inset-0 bg-gray-900/60 z-20 flex items-center justify-center backdrop-blur-[1px]">
-                            <div className="text-white text-center p-4">
-                                <Lock className="w-8 h-8 mx-auto mb-2 opacity-80" />
-                                <p className="text-sm font-bold">Yêu cầu quyền Editor</p>
-                            </div>
-                        </div>
-                    )}
+                    {/* Bỏ lớp phủ khóa (Lock overlay) để cho phép khách xem */}
+                    
                     <div className="relative aspect-[2/3] overflow-hidden">
                       <img src={t.thumbnailUrl} alt={t.name} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
-                      {canEdit && (
+                      
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <span className="bg-white text-rose-600 px-6 py-2 rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition">Chọn mẫu này</span>
+                            <span className="bg-white text-rose-600 px-6 py-2 rounded-full font-bold shadow-lg transform translate-y-4 group-hover:translate-y-0 transition">
+                                {canEdit ? "Chọn mẫu này" : "Xem chi tiết"}
+                            </span>
                         </div>
-                      )}
+                      
                     </div>
                     <div className="p-4 text-center">
                       <h3 className="font-bold text-lg text-gray-800">{t.name}</h3>

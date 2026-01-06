@@ -314,27 +314,28 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
       )
   };
 
-  // OPTIMIZED Cinematic Image
   const CinematicImage = ({ src, className = "", style, enableKenBurns = false, delay = 0 }: any) => {
       const isBase64 = src?.startsWith('data:');
-      // REMOVE BLUR EFFECT: Using only Opacity and Scale for better mobile performance
+      const shouldSkipEntry = isBase64;
+
       return (
           <div className={`w-full h-full overflow-hidden relative bg-gray-200 ${className}`} style={style}>
               <motion.img
                   key={src}
                   src={src}
-                  className="w-full h-full object-cover hardware-accelerated"
+                  className="w-full h-full object-cover"
                   alt="Wedding content"
-                  initial={isBase64 ? { opacity: 1 } : { opacity: 0, scale: 1.2 }}
-                  whileInView={{ 
+                  initial={shouldSkipEntry ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : { opacity: 0, scale: 1.2, filter: 'blur(5px)' }}
+                  whileInView={shouldSkipEntry ? undefined : { 
                       opacity: 1, 
-                      scale: 1,
+                      scale: 1, 
+                      filter: 'blur(0px)',
                       transition: { duration: 1.2, ease: "easeOut", delay: delay } 
                   }}
                   animate={enableKenBurns ? {
                       scale: [1, 1.1],
                       transition: {
-                        duration: 20, // Slower duration for smoother feel
+                        duration: 15,
                         ease: "linear",
                         repeat: Infinity,
                         repeatType: "reverse",
@@ -389,25 +390,18 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
     .calendar-cell { height: 36px; display: flex; align-items: center; justify-content: center; position: relative; }
     @keyframes heart-beat { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
     .animate-heart-beat { animation: heart-beat 1.5s infinite; }
-
-    /* Hardware Acceleration Helper */
-    .hardware-accelerated {
-        will-change: transform, opacity;
-        transform: translateZ(0);
-        backface-visibility: hidden;
-    }
   `;
 
-  // Animations (Optimized for Smoothness)
-  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2 } } };
-  const fadeInUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 1, ease: "easeOut" } } };
-  const fadeInDown = { hidden: { opacity: 0, y: -30 }, visible: { opacity: 1, y: 0, transition: { duration: 1, ease: "easeOut" } } };
-  const fadeInLeft = { hidden: { opacity: 0, x: -30 }, visible: { opacity: 1, x: 0, transition: { duration: 1, ease: "easeOut" } } };
-  const fadeInRight = { hidden: { opacity: 0, x: 30 }, visible: { opacity: 1, x: 0, transition: { duration: 1, ease: "easeOut" } } };
-  const zoomIn = { hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 1, ease: "easeOut" } } };
+  // Animations (Matching Webcake)
+  const fadeIn = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5 } } };
+  const fadeInUp = { hidden: { opacity: 0, y: 100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
+  const fadeInDown = { hidden: { opacity: 0, y: -100 }, visible: { opacity: 1, y: 0, transition: { duration: 1.5 } } };
+  const fadeInLeft = { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
+  const fadeInRight = { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0, transition: { duration: 1.5 } } };
+  const zoomIn = { hidden: { opacity: 0, scale: 0.3 }, visible: { opacity: 1, scale: 1, transition: { duration: 1.5 } } };
   const slideInLeft = { hidden: { x: '-100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
   const slideInRight = { hidden: { x: '100%' }, visible: { x: 0, transition: { duration: 1.5 } } };
-  const slideInUp = { hidden: { y: '50%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.2, ease: "easeOut" } } };
+  const slideInUp = { hidden: { y: '100%', opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 1.5 } } };
   const pulse = { visible: { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 2 } } };
 
   // Curtain Variants (Open from center)
@@ -420,19 +414,19 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
     open: { x: '100%', transition: { duration: 2.5, ease: [0.4, 0, 0.2, 1] } }
   };
 
-  // Delayed content appearance
+  // Delayed content appearance (Updated timing to match reference)
   const contentContainerVariants = {
-    hidden: { opacity: 0, scale: 0.98, y: 20 },
+    hidden: { opacity: 0, scale: 0.95, y: 30 }, // Add subtle initial state
     visible: { 
       opacity: 1,
       scale: 1,
       y: 0,
       transition: { 
-        duration: 2.0,
+        duration: 2.5,
         ease: "easeOut",
         delay: 0.2,
-        delayChildren: 2.0,
-        staggerChildren: 0.1
+        delayChildren: 2.2, // Updated delay to 2.2s
+        staggerChildren: 0.15 // Updated stagger
       } 
     }
   };
@@ -538,8 +532,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
            animate={isOpening ? "visible" : "hidden"}
            variants={contentContainerVariants}
         >
-            {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) để không tràn viền */}
-            <motion.div variants={zoomIn} className="abs" style={{top:'80px', left:'30px', width:'360px', height:'60px', zIndex: 10}}>
+            <motion.div variants={zoomIn} className="abs" style={{top:'80px', left:'3.5px', width:'413px', height:'60px', zIndex: 10}}>
                 <EditableWrapper field="groomName" label="Tên Dâu Rể" defaultFontSize={40} className="w-full text-center">
                     <h1 style={{fontFamily: 'UTM-Sloop, sans-serif', textShadow: '0px 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'} - {localData.brideName || 'Diệu Nhi'}</h1>
                 </EditableWrapper>
@@ -599,15 +592,13 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                 <h2 style={{fontFamily:'BlackMango-Medium, sans-serif', fontSize:'14px', textAlign:'center'}}>Trân Trọng Báo Tin Lễ Thành Hôn Của</h2>
              </motion.div>
 
-             {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) */}
-             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'273.5px', left:'30px', width:'360px'}}>
+             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'273.5px', left:'3.5px', width:'413px'}}>
                  <EditableWrapper field="groomName" label="Chú Rể" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.groomName || 'Anh Tú'}</h1></EditableWrapper>
              </motion.div>
              <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'316px', left:'141.5px', width:'137px'}}>
                  <h1 style={{fontFamily:'UTM-Azkia, sans-serif', fontSize:'40px', textAlign:'center'}}>&</h1>
              </motion.div>
-             {/* Tinh chỉnh: Giảm width còn 360px và căn giữa (left 30px) */}
-             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'355px', left:'30px', width:'360px'}}>
+             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'355px', left:'3.5px', width:'413px'}}>
                 <EditableWrapper field="brideName" label="Cô Dâu" defaultFontSize={40} className="w-full text-center"><h1 style={{fontFamily:'UTM-Sloop, sans-serif', textShadow:'0 4px 4px #fff', fontSize:'40px'}}>{localData.brideName || 'Diệu Nhi'}</h1></EditableWrapper>
              </motion.div>
 
@@ -741,7 +732,7 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
                  <p style={{fontFamily:'Arial, sans-serif', fontSize:'18px', fontWeight:'bold', textTransform:'uppercase'}}>Tháng {month} / {year}</p>
             </motion.div>
 
-            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'120px', left:'40px', width:'340px'}}>
+            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'120px', left:'35px', width:'350px'}}>
                  <div className="bg-white/80 p-4 rounded-xl shadow-lg border border-rose-100">
                     <div className="calendar-grid mb-2 border-b border-gray-200 pb-2">
                         <div className="font-bold text-rose-700">T2</div>
@@ -776,15 +767,13 @@ export const TemplatePersonalized: React.FC<TemplatePersonalizedProps> = ({ data
 
         {/* --- SECTION 5: RSVP --- */}
         <div className="section-container" style={{ height: '522px', backgroundImage: 'url("https://content.pancake.vn/1/s840x1600/fwebp/fd/42/7d/0c/1ca1e8525f99e3105eb930cd8ed684a64b07a0d9df7e0c725ca9779c-w:1260-h:2400-l:65030-t:image/png.png")' }}>
-            {/* Tinh chỉnh: Giảm width còn 330px và căn giữa (left 45px) */}
-            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'124.5px', left:'45px', width:'330px', height:'312px', background:'rgba(177, 0, 0, 1)', borderRadius:'16px', border:'1px solid #e5e7eb'}}></motion.div>
+            <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs" style={{top:'124.5px', left:'35px', width:'350px', height:'312px', background:'rgba(177, 0, 0, 1)', borderRadius:'16px', border:'1px solid #e5e7eb'}}></motion.div>
             
             <motion.div variants={zoomIn} initial="hidden" whileInView="visible" viewport={{once:true}} className="abs w-full text-center" style={{top:'14.3px', left:'58px', width:'304px'}}>
                 <h2 style={{fontFamily:'Ephesis-Regular, sans-serif', fontSize:'30px', lineHeight:1, color:'#000'}}>Xác Nhận Tham Dự<br/>&<br/>Gửi Lời Chúc</h2>
             </motion.div>
             
-            {/* Tinh chỉnh: Giảm width còn 290px và căn giữa tương đối (left 65px) */}
-            <div className="abs" style={{top:'144px', left:'65px', width:'290px', height:'277px'}}>
+            <div className="abs" style={{top:'144px', left:'56.5px', width:'307px', height:'277px'}}>
                 <div style={{height: '43px', marginBottom: '14px'}}>
                     <input 
                         className="inp-style" 

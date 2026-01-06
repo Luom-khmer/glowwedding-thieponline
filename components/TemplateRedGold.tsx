@@ -301,24 +301,18 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
       )
   };
 
-  // OPTIMIZED Cinematic Image for Maximum Performance
+  // Simplified Cinematic Image for Smoothness
   const CinematicImage = ({ src, className = "", style, delay = 0 }: any) => {
       const isBase64 = src?.startsWith('data:');
-      // REMOVE BLUR EFFECT: Blurring is very expensive on mobile GPUs. 
-      // Using only Opacity and Scale ensures 60fps.
       return (
           <div className={`w-full h-full overflow-hidden relative bg-gray-200 ${className}`} style={style}>
               <motion.img
                   key={src}
                   src={src}
-                  className="w-full h-full object-cover hardware-accelerated"
+                  className="w-full h-full object-cover"
                   alt="Wedding content"
-                  initial={isBase64 ? { opacity: 1 } : { opacity: 0, scale: 1.1 }}
-                  whileInView={{ 
-                      opacity: 1, 
-                      scale: 1,
-                      transition: { duration: 1.2, ease: "easeOut" } 
-                  }}
+                  initial={isBase64 ? { opacity: 1 } : { opacity: 0 }}
+                  whileInView={{ opacity: 1, transition: { duration: 0.8 } }}
                   viewport={{ once: true }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60 pointer-events-none"></div>
@@ -344,25 +338,18 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
     .abs { position: absolute; } .rel { position: relative; } .w-full { width: 100%; } .h-full { height: 100%; } .bg-cover { background-size: cover; background-position: center; background-repeat: no-repeat; }
     .pointer-events-none { pointer-events: none; }
     .section-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: 100% 100%; z-index: 0; }
-    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff, 1px -1px #fff; }
+    .text-shadow-white { text-shadow: 2px 0 #fff, -2px 0 #fff, 0 2px #fff, 0 -2px #fff, 1px 1px #fff, -1px -1px #fff, 1px -1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, -1px 1px #fff, 1px -1px #fff, -1px 1px #fff; }
     .font-cafeta { font-family: "UTM-Cafeta", sans-serif; } .font-ephesis { font-family: "Ephesis-Regular", cursive; } .font-mightiest { font-family: "SVN-Mightiest", serif; } .font-blackmango { font-family: "BlackMango-Medium", serif; } .font-sloop { font-family: "UTM-Sloop", cursive; } .font-azkia { font-family: "UTM-Azkia", cursive; } .font-alex { font-family: "AlexBrush-Regular", cursive; } .font-arial { font-family: 'Arial', sans-serif; } .font-oswald { font-family: 'Oswald', sans-serif; }
     .btn-red { background: rgba(177, 0, 0, 1); color: white; border-radius: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .inp-style { background: white; border: 1px solid rgba(142, 1, 1, 1); border-radius: 10px; color: rgba(153, 0, 0, 1); padding: 0 10px; width: 100%; height: 100%; outline: none; }
     @keyframes pulse-custom { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(177, 0, 0, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(177, 0, 0, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(177, 0, 0, 0); } }
     .animate-pulse-custom { animation: pulse-custom 2s infinite; }
-    
-    /* Hardware Acceleration Helper */
-    .hardware-accelerated {
-        will-change: transform, opacity;
-        transform: translateZ(0);
-        backface-visibility: hidden;
-    }
   `;
 
-  // Simplified Variants for Smoothness - Removed Y offset for quicker, smoother entry
-  const fadeInUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
-  const fadeInDown = { hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
-  const zoomIn = { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: "easeOut" } } };
+  // Simplified Variants for Smoothness
+  const fadeInUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
+  const fadeInDown = { hidden: { opacity: 0, y: -30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
+  const zoomIn = { hidden: { opacity: 0, scale: 0.9 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } } };
   const contentContainerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, delay: 0.2, staggerChildren: 0.1 } } };
 
   return (
@@ -456,9 +443,8 @@ export const TemplateRedGold: React.FC<TemplateRedGoldProps> = ({ data: initialD
                 <div className="section-bg pointer-events-none" style={{ backgroundImage: 'url("https://content.pancake.vn/1/s840x1600/fwebp/fd/42/7d/0c/1ca1e8525f99e3105eb930cd8ed684a64b07a0d9df7e0c725ca9779c-w:1260-h:2400-l:65030-t:image/png.png")' }}></div>
                 <div className="content-layer relative z-10 w-full h-full">
                     <motion.div variants={zoomIn} className="abs w-full text-center" style={{top: '14px'}}><h2 className="font-ephesis text-[30px] leading-none">Xác Nhận Tham Dự<br/>&<br/>Gửi Lời Chúc</h2></motion.div>
-                    {/* Tinh chỉnh width và left để không chạm biên đỏ */}
-                    <div className="abs pointer-events-none" style={{top: '124px', left: '45px', width: '330px', height: '312px', background: '#902732', borderRadius: '16px'}}></div>
-                    <div className="abs z-20" style={{top: '144px', left: '65px', width: '290px'}}>
+                    <div className="abs pointer-events-none" style={{top: '124px', left: '35px', width: '350px', height: '312px', background: '#902732', borderRadius: '16px'}}></div>
+                    <div className="abs z-20" style={{top: '144px', left: '56px', width: '307px'}}>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Tên của bạn là?" value={guestNameInput} onChange={(e) => setGuestNameInput(e.target.value)} /></div>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Bạn là gì của Dâu Rể nhỉ?" value={guestRelation} onChange={(e) => setGuestRelation(e.target.value)} /></div>
                         <div style={{height: '43px', marginBottom: '14px'}}><input className="inp-style" placeholder="Gửi lời chúc đến Dâu Rể nhé!" value={guestWishes} onChange={(e) => setGuestWishes(e.target.value)} /></div>
